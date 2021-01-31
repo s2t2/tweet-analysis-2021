@@ -48,6 +48,8 @@ TWITTER_ACCESS_TOKEN_SECRET="_____________"
 
 ## Usage
 
+### Services
+
 Testing the Google BigQuery connection:
 
 ```sh
@@ -58,4 +60,12 @@ Testing the Twitter service:
 
 ```sh
 python -m app.twitter_service
+```
+
+### Scripts
+
+Lookup user information:
+
+```sh
+SEARCH_TERM="#WWG1WGA" LIMIT=10 python -m app.jobs.user_lookups
 ```
