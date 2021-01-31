@@ -57,6 +57,24 @@ create table `tweet-research-shared.disinfo_2021.user_lookups` (
 
 # Queries
 
+## Collection Progress
+
+```sql
+SELECT
+    extract(date from created_at) as day
+    ,count(distinct user_id) as user_count
+    ,count(distinct status_id) as status_count
+    ,count(distinct case when retweeted_status_id is not null then status_id end) as rt_count
+FROM `tweet-research-shared.disinfo_2021.tweets_view`
+-- FROM `tweet-collector-py.disinfo_2021_production.tweets`
+-- FROM `tweet-collector-py.impeachment_2021_production.tweets`
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
+## Analysis
+
+### Disinfo Dataset Exploration
 
 ```sql
 -- who are the most active retweeters?
@@ -83,8 +101,6 @@ GROUP BY 1
 ORDER BY 3 DESC
 LIMIT 50
 ```
-
-## Disinfo Queries
 
 Looks like we have a more generic dataset with mentions of generic terms, so let's restrict the dataset to users who have a higher likelihood of associating with disinfo.
 
