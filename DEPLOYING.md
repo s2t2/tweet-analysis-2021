@@ -22,6 +22,8 @@ heroku config:set GOOGLE_APPLICATION_CREDENTIALS="google-credentials.json" # ref
 Configure the rest of the environment variables:
 
 ```sh
+heroku config:set APP_ENV="production"
+
 heroku config:set TWITTER_API_KEY="_____________"
 heroku config:set TWITTER_API_KEY_SECRET="_____________"
 heroku config:set TWITTER_ACCESS_TOKEN="_____________"

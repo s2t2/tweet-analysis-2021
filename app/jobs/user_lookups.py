@@ -4,6 +4,7 @@ import os
 
 from tweepy.error import TweepError
 
+from app import APP_ENV
 from app.bq_service import BigQueryService
 from app.twitter_service import TwitterService
 
@@ -22,7 +23,7 @@ if __name__ == '__main__':
             FROM `tweet-research-shared.disinfo_2021.user_lookups`
         """))
 
-    if input("CONTINUE? (Y/N): ").upper() != "Y":
+    if APP_ENV=="development" and input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
         exit()
 
