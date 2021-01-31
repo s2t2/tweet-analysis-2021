@@ -1,0 +1,10 @@
+
+
+
+python-dotenv
+
+pandas
+
+google-cloud-bigquery
+
+tweepy
