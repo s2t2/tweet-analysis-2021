@@ -84,3 +84,5 @@ if __name__ == '__main__':
         SELECT count(distinct user_id)
         FROM `tweet-research-shared.disinfo_2021.user_lookups`
     """))
+
+    print("JOB COMPLETE. RESTARTING...")
