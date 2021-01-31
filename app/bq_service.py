@@ -1,3 +1,12 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud
+
+################################
+
 from google.cloud import bigquery
 from pandas import DataFrame
 
@@ -35,3 +44,17 @@ class BigQueryService():
         for batch in batches:
             errors += self.client.insert_rows(table, batch)
         return errors
+
+
+if __name__ == '__main__':
+
+
+    bq_service = BigQueryService()
+
+    print(bq_service.query_to_df("""
+        SELECT
+            count(distinct user_id) as user_count
+            ,count(distinct status_id) as status_count
+        FROM `tweet-research-shared.disinfo_2021.tweets_view`
+        LIMIT 10
+    """))
