@@ -1,5 +1,9 @@
 # tweet-analysis-2021
 
+This is a fresh start follow-up to some [previous research code](https://github.com/s2t2/tweet-analyzer-py).
+
+The goal of this repo is to provide shared code for local dev, Heroku server, and Google Colab environments.
+
 ## Installation
 
 Clone this repo onto your local machine and navigate there from the command-line:
@@ -21,15 +25,15 @@ Install package dependencies:
 pip install -r requirements.txt
 ```
 
-## Setup
+## Configuration
 
 ### Twitter API Credentials
 
-Obtain credentials which provide read access to the Twitter API. Set the environment variables `TWITTER_CONSUMER_KEY`, `TWITTER_CONSUMER_SECRET`, `TWITTER_ACCESS_TOKEN`, and `TWITTER_ACCESS_TOKEN_SECRET` accordingly (see environment variable setup below).
+From the [Twitter Developer console](https://developer.twitter.com), create a new app and corresponding credentials which provide read access to the Twitter API. Set the environment variables `TWITTER_API_KEY`, `TWITTER_API_KEY_SECRET`, `TWITTER_ACCESS_TOKEN`, and `TWITTER_ACCESS_TOKEN_SECRET` accordingly (see environment variable setup below).
 
 ### Google API Credentials
 
-The massive volume of tweets are stored in a Google BigQuery database, so we'll need BigQuery credentials to access the data. From the [Google Cloud console](https://console.cloud.google.com/), enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "google-credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
+From the [Google Cloud console](https://console.cloud.google.com/), enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "google-credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
 
 ### Environment Variables
 
@@ -50,19 +54,19 @@ TWITTER_ACCESS_TOKEN_SECRET="_____________"
 
 ### Services
 
-Testing the Google BigQuery connection:
+Connecting with Google BigQuery database:
 
 ```sh
 python -m app.bq_service
 ```
 
-Testing the Twitter service:
+Connecting with the Twitter API:
 
 ```sh
 python -m app.twitter_service
 ```
 
-### Scripts
+### Jobs / Worker Processes
 
 Lookup user information:
 

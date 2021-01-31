@@ -1,14 +1,11 @@
 import os
 from dotenv import load_dotenv
+from google.cloud import bigquery
+from pandas import DataFrame
 
 load_dotenv()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud
-
-################################
-
-from google.cloud import bigquery
-from pandas import DataFrame
 
 def split_into_batches(my_list, batch_size=10_000):
     """Splits a list into evenly sized batches"""
@@ -44,17 +41,6 @@ class BigQueryService():
         for batch in batches:
             errors += self.client.insert_rows(table, batch)
         return errors
-
-
-    #
-    #
-    #
-
-    def funcname(self, search_term, limit=None):
-        """
-        docstring
-        """
-        pass
 
 
 if __name__ == '__main__':
