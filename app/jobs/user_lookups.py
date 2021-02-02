@@ -19,9 +19,9 @@ if __name__ == '__main__':
     print("SEARCH_TERM:", SEARCH_TERM)
     print("LIMIT:", LIMIT)
     print(bq_service.query_to_df("""
-            SELECT count(distinct user_id)
-            FROM `tweet-research-shared.disinfo_2021.user_lookups`
-        """))
+        SELECT count(distinct user_id)
+        FROM `tweet-research-shared.disinfo_2021.user_lookups`
+    """))
 
     if APP_ENV=="development" and input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
@@ -46,6 +46,7 @@ if __name__ == '__main__':
     results_df = bq_service.query_to_df(sql)
     print(results_df.head())
 
+    table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.user_lookups")
     lookups = []
     for index, row in results_df.iterrows():
         # construct a record to insert into the lookups table. need to convert numpy.int64 to normal int
@@ -77,7 +78,12 @@ if __name__ == '__main__':
         print(index, lookup)
         lookups.append(lookup)
 
-    table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.user_lookups")
+        if BATCH_SIZE and len(lookups) >= BATCH_SIZE:
+            print("SAVING BATCH...")
+            bq_service.insert_records_in_batches(records=lookups, table=table)
+            lookups = []
+
+    # save final / incomplete batch
     bq_service.insert_records_in_batches(records=lookups, table=table)
 
     print(bq_service.query_to_df("""
@@ -85,4 +91,9 @@ if __name__ == '__main__':
         FROM `tweet-research-shared.disinfo_2021.user_lookups`
     """))
 
-    print("JOB COMPLETE. RESTARTING...")
+    print("JOB COMPLETE!")
+
+    if APP_ENV == "production":
+        print(f"SERVER '{SERVER_NAME.upper()}' SLEEPING...")
+        seconds = 10 * 60
+        time.sleep(seconds)
