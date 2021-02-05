@@ -1,18 +1,19 @@
 
 
 import os
+from time import sleep
+from dotenv import load_dotenv
 
-#from tweepy.error import TweepError
-
-#from app import APP_ENV
-from app.bq_service import BigQueryService
+from app import seek_confirmation
+from app.bq_service import BigQueryService, generate_timestamp
 from app.twitter_service import TwitterService
+from app.tweet_parser import parse_timeline_status
 
-STATUS_LIMIT = int(os.getenv("LIMIT", default="10_000"))
+load_dotenv()
 
-#def process_batch():
-#    #timelines_table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.timelines")
-#    #bq_service.insert_records_in_batches(records=timeline, table=timelines_table)
+DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.disinfo_2021_development")
+USER_LIMIT = int(os.getenv("USER_LIMIT", default="10")) # 3
+STATUS_LIMIT = int(os.getenv("STATUS_LIMIT", default="1_000")) # 10
 
 
 if __name__ == '__main__':
@@ -20,56 +21,72 @@ if __name__ == '__main__':
     bq_service = BigQueryService()
     twitter_service = TwitterService()
 
-    # get timeline for each user
-    # ... excluding users suspended or not found during the lookup process
+    print("DATASET:", DATASET_ADDRESS.upper())
+    print("USER LIMIT:", USER_LIMIT)
+    print("STATUS LIMIT:", STATUS_LIMIT)
+
+    seek_confirmation()
+
+    #
+    # GET USERS, EXCLUDING THOSE WHO ARE: SUSPENDED, NOT FOUND, PREVIOUSLY LOOKED-UP
+    #
+
     sql = f"""
-        SELECT DISTINCT user_id
-        FROM `tweet-research-shared.disinfo_2021.user_lookups`
-        WHERE error_code IS NULL AND status_count > 0
+        WITH user_lookups as (
+            SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
+            FROM `{DATASET_ADDRESS}.user_lookups`
+        )
+
+        SELECT DISTINCT ul.user_id
+        FROM user_lookups ul
+        LEFT JOIN `{DATASET_ADDRESS}.timeline_lookups` tl ON tl.user_id = ul.user_id
+        WHERE ul.error_code IS NULL
+            AND ul.status_count > 0
+            AND tl.user_id IS NULL
+        LIMIT {USER_LIMIT};
     """
-    results_df = bq_service.query_to_df(sql)
-    user_ids = results_df["user_id"].tolist()
-    print(len(user_ids))
+    #print(sql)
+    user_ids = [row["user_id"] for row in list(bq_service.execute_query(sql))]
+    print("USERS:", len(user_ids))
+    if not any(user_ids):
+        print("SLEEPING...")
+        sleep(10 * 60 * 60)
+        exit()
 
-    #lookups_table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.timeline_lookups")
-    timelines_table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.timelines")
+    #
+    # GET TIMELINE TWEETS FOR EACH USER
+    #
 
+    lookups_table = bq_service.client.get_table(f"{DATASET_ADDRESS}.timeline_lookups")
+    timelines_table = bq_service.client.get_table(f"{DATASET_ADDRESS}.timeline_tweets")
+
+    lookups = []
     for user_id in user_ids:
-        # TODO: use threadpool executor, return user_id "as completed"
-        print("FETCHING TIMELINE FOR :", user_id)
+        print("---------------------")
+        print("USER ID:", user_id)
 
         timeline = []
-        for status in twitter_service.get_statuses(user_id, limit=STATUS_LIMIT):
-            breakpoint()
-            record = status._json
-            timeline.append(record)
+        lookup = {
+            "user_id": user_id,
+            "error_code": None, "error_type": None, "error_message": None,
+            "timeline_length": None #, "timeline_start": None, "timeline_end": None
+        }
 
-            if len(timeline) >= BATCH_SIZE:
-                bq_service.insert_records_in_batches(records=timeline, table=timelines_table)
-                batch = []
+        try:
+            for status in twitter_service.get_statuses(user_id=user_id, limit=STATUS_LIMIT):
+                timeline.append(parse_timeline_status(status))
+            lookup["timeline_length"] = len(timeline)
+        except Exception as err:
+            #print("OOPS", err)
+            #lookup["error_code"] = err.api_code # theoretically
+            lookup["error_type"] = type(err)
+            lookup["error_message"] = err.reason
+
+        print(lookup)
+        lookups.append(lookup)
 
         if any(timeline):
             bq_service.insert_records_in_batches(records=timeline, table=timelines_table)
-            batch = []
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        #lookups_table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.timeline_lookups")
-        #bq_service.insert_records_in_batches(records=lookups, table=lookups_table)
+    if any(lookups):
+        bq_service.insert_records_in_batches(records=lookups, table=lookups_table)

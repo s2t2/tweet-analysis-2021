@@ -13,6 +13,11 @@ def split_into_batches(my_list, batch_size=10_000):
     for i in range(0, len(my_list), batch_size):
         yield my_list[i : i + batch_size]
 
+def generate_timestamp(dt=None):
+    """Formats datetime object for storing in BigQuery. Uses current time by default. """
+    dt = dt or datetime.now()
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 class BigQueryService():
     def __init__(self):
         self.client = bigquery.Client()

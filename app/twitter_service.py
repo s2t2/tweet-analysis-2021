@@ -14,6 +14,7 @@ TWITTER_API_KEY_SECRET = os.getenv("TWITTER_API_KEY_SECRET", default="OOPS")
 TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN", default="OOPS")
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
 
+
 class TwitterService:
     def __init__(self, api_key=TWITTER_API_KEY, api_key_secret=TWITTER_API_KEY_SECRET,
                         access_token=TWITTER_ACCESS_TOKEN, access_token_secret=TWITTER_ACCESS_TOKEN_SECRET):
@@ -41,7 +42,11 @@ class TwitterService:
             https://docs.tweepy.org/en/latest/api.html#timeline-methods
             https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
         """
-        request_params = {"cursor": -1, "exclude_replies": False, "include_rts": True} # TODO: more flexibly pass the API request params
+        request_params = {"cursor": -1,
+            "exclude_replies": False,
+            "include_rts": True,
+            "tweet_mode": "extended"
+        } # TODO: more flexibly pass the API request params
         if user_id:
             request_params["user_id"] = user_id
         elif screen_name:

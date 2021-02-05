@@ -36,9 +36,16 @@ create table `tweet-research-shared.disinfo_2021.tweets_view` as (
 )
 ```
 
+### User Lookups
+
+User lookups script:
+
 ```sql
-drop table `tweet-research-shared.disinfo_2021.user_lookups`;
-create table `tweet-research-shared.disinfo_2021.user_lookups` (
+--drop table `tweet-research-shared.disinfo_2021.user_lookups`;
+--create table `tweet-research-shared.disinfo_2021.user_lookups` (
+-- NEXT TIME DO THIS INSTEAD:
+drop table `tweet-collector-py.disinfo_2021_production.user_lookups`;
+create table `tweet-collector-py.disinfo_2021_production.user_lookups` (
     user_id INT64,
     error_code INT64,
     follower_count INT64,
@@ -49,20 +56,54 @@ create table `tweet-research-shared.disinfo_2021.user_lookups` (
 )
 ```
 
+We should actually probably be collecting in the upstream project only, so let's at least backup there retrospectively:
 
 ```sql
-drop table `tweet-research-shared.disinfo_2021.timeline_lookups`;
-create table `tweet-research-shared.disinfo_2021.timeline_lookups` (
-    user_id INT64,
-    --error_code INT64,
-    -- statuses_limit INT64,
-    statuses_collected INT64,
-    timeline_start TIMESTAMP,
-    timeline_end TIMESTAMP
-    --more_before BOOLEAN,
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups` as (
+    SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
+    FROM `tweet-research-shared.disinfo_2021.user_lookups`
 )
 ```
 
+
+### Timeline Lookups
+
+Timeline lookups script:
+
+```sql
+--DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups` (
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_development.timeline_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_development.timeline_lookups` (
+    user_id INT64,
+    timeline_length INT64,
+    error_code INT64,
+    error_type STRING,
+    error_message STRING
+);
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_tweets`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_tweets` (
+    user_id INT64,
+    status_id INT64,
+    status_text STRING,
+    created_at TIMESTAMP,
+
+    geo STRING,
+    is_quote BOOLEAN,
+    truncated BOOLEAN,
+
+    reply_status_id INT64,
+    reply_user_id INT64,
+    retweeted_status_id INT64,
+    retweeted_user_id INT64,
+    retweeted_user_screen_name STRING,
+
+)
+```
 
 
 
