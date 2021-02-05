@@ -50,6 +50,18 @@ create table `tweet-research-shared.disinfo_2021.user_lookups` (
 ```
 
 
+```sql
+drop table `tweet-research-shared.disinfo_2021.timeline_lookups`;
+create table `tweet-research-shared.disinfo_2021.timeline_lookups` (
+    user_id INT64,
+    --error_code INT64,
+    -- statuses_limit INT64,
+    statuses_collected INT64,
+    timeline_start TIMESTAMP,
+    timeline_end TIMESTAMP
+    --more_before BOOLEAN,
+)
+```
 
 
 
@@ -57,7 +69,7 @@ create table `tweet-research-shared.disinfo_2021.user_lookups` (
 
 # Queries
 
-## Collection Progress
+Tweet Collection Progress:
 
 ```sql
 SELECT
@@ -70,6 +82,23 @@ FROM `tweet-research-shared.disinfo_2021.tweets_view`
 -- FROM `tweet-collector-py.impeachment_2021_production.tweets`
 GROUP BY 1
 ORDER BY 1 DESC
+```
+
+User Lookup Results:
+
+```sql
+-- see: https://developer.twitter.com/ja/docs/basics/response-codes
+SELECT
+    error_code
+    ,case
+        when error_code = 50 then "User not found."
+        when error_code = 63 then "User has been suspended."
+    end  error_message
+   ,count(distinct user_id) as user_count
+   ,sum(status_count) as tweet_count
+FROM `tweet-research-shared.disinfo_2021.user_lookups`
+group by 1,2
+order by 3 desc
 ```
 
 ## Analysis

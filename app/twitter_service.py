@@ -1,15 +1,13 @@
 
 
 import os
+
 from dotenv import load_dotenv
+from tweepy import OAuthHandler, API, Cursor, TweepError
 
 from helpers.number_decorators import fmt_n
 
 load_dotenv()
-
-################################
-
-from tweepy import OAuthHandler, API, Cursor, TweepError
 
 TWITTER_API_KEY = os.getenv("TWITTER_API_KEY", default="OOPS")
 TWITTER_API_KEY_SECRET = os.getenv("TWITTER_API_KEY_SECRET", default="OOPS")
@@ -43,15 +41,16 @@ class TwitterService:
             https://docs.tweepy.org/en/latest/api.html#timeline-methods
             https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
         """
-        request_params = {"cursor": -1, "exclude_replies": False, "include_rts": True}
+        request_params = {"cursor": -1, "exclude_replies": False, "include_rts": True} # TODO: more flexibly pass the API request params
         if user_id:
             request_params["user_id"] = user_id
         elif screen_name:
             request_params["screen_name"] = screen_name
 
         cursor = Cursor(self.api.user_timeline, **request_params)
-        return cursor.items(limit)
         #return cursor.pages()
+        return cursor.items(limit)
+        #yield cursor.items(limit)
 
 
 if __name__ == "__main__":
