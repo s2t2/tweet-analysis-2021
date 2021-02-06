@@ -135,4 +135,7 @@ if __name__ == '__main__':
         # ... (like in the case of an unexpected error or something)
         # ... sending an API request to BQ to store a single lookup record feels bad, so...
         if any(lookups):
+            print("SAVING", len(lookups), "LOOKUPS...")
             job.save_lookups(lookups)
+
+    print("JOB COMPLETE!")
