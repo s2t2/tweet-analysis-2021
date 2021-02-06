@@ -14,8 +14,8 @@ from app.tweet_parser import parse_timeline_status
 load_dotenv()
 
 DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.disinfo_2021_development")
-USER_LIMIT = os.getenv("USER_LIMIT", default="100")
-STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="5_000")
+USER_LIMIT = os.getenv("USER_LIMIT", default="500")
+STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="10_000")
 
 
 class TimelineLookupsJob():
