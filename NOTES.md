@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_development.timeline
     timeline_length INT64,
     error_code INT64,
     error_type STRING,
-    error_message STRING
+    message STRING
 );
 ```
 

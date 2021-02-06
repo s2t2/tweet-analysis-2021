@@ -8,3 +8,6 @@ pandas
 google-cloud-bigquery
 
 tweepy
+
+
+tqdm # progress bar https://github.com/tqdm/tqdm
