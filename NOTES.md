@@ -72,15 +72,13 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.user_look
 Timeline lookups script:
 
 ```sql
---DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups`;
---CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups` (
-DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_development.timeline_lookups`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_development.timeline_lookups` (
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups` (
     user_id INT64,
     timeline_length INT64,
     error_code INT64,
     error_type STRING,
-    message STRING
+    error_message STRING
 );
 ```
 
@@ -101,7 +99,6 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_
     retweeted_status_id INT64,
     retweeted_user_id INT64,
     retweeted_user_screen_name STRING,
-
 )
 ```
 
