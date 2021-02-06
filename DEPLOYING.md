@@ -15,7 +15,7 @@ Provision and configure the Google Application Credentials Buildpack to generate
 ```sh
 heroku buildpacks:set heroku/python
 heroku buildpacks:add https://github.com/s2t2/heroku-google-application-credentials-buildpack
-heroku config:set GOOGLE_CREDENTIALS="$(< google-credentials-shared.json)" # references local creds file
+heroku config:set GOOGLE_CREDENTIALS="$(< google-credentials.json)" # references local creds file
 heroku config:set GOOGLE_APPLICATION_CREDENTIALS="google-credentials.json" # references server creds
 ```
 
@@ -24,11 +24,14 @@ Configure the rest of the environment variables:
 ```sh
 heroku config:set APP_ENV="production"
 
+heroku config:set DATASET_ADDRESS="tweet-collector-py.disinfo_2021_production"
+
 heroku config:set TWITTER_API_KEY="_____________"
 heroku config:set TWITTER_API_KEY_SECRET="_____________"
 heroku config:set TWITTER_ACCESS_TOKEN="_____________"
 heroku config:set TWITTER_ACCESS_TOKEN_SECRET="_____________"
 ```
+
 
 
 

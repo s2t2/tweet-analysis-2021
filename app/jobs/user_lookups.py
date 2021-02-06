@@ -8,7 +8,7 @@ from app import APP_ENV
 from app.bq_service import BigQueryService
 from app.twitter_service import TwitterService
 
-SEARCH_TERM = os.getenv("SEARCH_TERM", default="#MySearchTerm")
+SEARCH_TERM = os.getenv("SEARCH_TERM", default="#WWG1WGA")
 LIMIT = os.getenv("LIMIT") # None is OK
 
 if __name__ == '__main__':

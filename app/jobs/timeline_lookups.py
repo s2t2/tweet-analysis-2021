@@ -28,7 +28,7 @@ class TimelineLookupsJob():
         self.user_limit = int(user_limit)
         self.status_limit = int(status_limit)
 
-        #self.parse_status = parse_timeline_status
+        self.parse_status = parse_timeline_status
 
         print("---------------------------")
         print("JOB: TIMELINE LOOKUPS")
@@ -107,7 +107,7 @@ if __name__ == '__main__':
             lookup = {"user_id": user_id, "timeline_length": None, "error_code": None, "error_type": None, "error_message": None}
             try:
                 for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.status_limit):
-                    timeline.append(parse_timeline_status(status))
+                    timeline.append(job.parse_status(status))
                 lookup["timeline_length"] = len(timeline)
             except Exception as err:
                 #print("OOPS", err)
