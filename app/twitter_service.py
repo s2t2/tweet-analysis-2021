@@ -56,14 +56,17 @@ class TwitterService:
     #    return cursor.items(limit)
     #    #yield cursor.items(limit)
 
-    def get_statuses(self, request_params, limit=2_000):
+    def get_statuses(self, request_params={}, limit=2_000):
         """See:
             https://docs.tweepy.org/en/latest/api.html#timeline-methods
             https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
 
-        Params: request_params (dict) needs either user_id or screen_name
+        Params:
+            request_params (dict) needs either "user_id" or "screen_name" attr
 
-        Example: get_statuses({"user_id": 10101, "count": 100})
+            limit (int) the number of total tweets to fetch per user
+
+        Example: get_statuses({"user_id": 10101, "count": 100}, limit=300)
         """
         default_params = {
             "exclude_replies": False,
@@ -71,7 +74,7 @@ class TwitterService:
             "tweet_mode": "extended",
             "count": 200 # number of tweets per request
         }
-        request_params = {**default_params, **request_params} # use the defaults, and override with user-specified params
+        request_params = {**default_params, **request_params} # use the defaults, and override with user-specified params (including the required user_id or screen_name)
         request_params["cursor"] = -1 # use a cursor approach!
 
         cursor = Cursor(self.api.user_timeline, **request_params)
@@ -88,6 +91,7 @@ if __name__ == "__main__":
 
     user = twitter_service.get_user(screen_name)
     #pprint(user._json)
+    print("----------------")
     print("USER:", screen_name.upper())
     print("FOLLOWERS:", fmt_n(user.followers_count))
     print("FRIENDS:", fmt_n(user.friends_count))
@@ -98,11 +102,10 @@ if __name__ == "__main__":
     except:
         pass
 
-    #counter = 1
-    #for status in twitter_service.get_statuses(screen_name):
-    #    print("----------------")
-    #    print(counter, status)
-    #    counter+=1
-    #    #if counter >= 100: break
-
-    #print("GET STATUSES:", len(list(twitter_service.get_statuses(screen_name))))
+    print("----------------")
+    print("TIMELINE:")
+    counter = 0
+    for status in twitter_service.get_statuses(request_params={"screen_name":screen_name, "count":10}, limit=25):
+        counter +=1
+        print("----------------")
+        print(counter, status.full_text)
