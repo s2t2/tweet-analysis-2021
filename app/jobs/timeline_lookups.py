@@ -66,7 +66,7 @@ class TimelineLookupsJob():
         return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_tweets")
 
     def fetch_statuses(self, user_id):
-        return self.twitter_service.get_statuses(user_id=user_id, limit=self.status_limit)
+        return self.twitter_service.get_statuses(request_params={"user_id": user_id}, limit=self.status_limit)
 
     def save_timeline(self, timeline):
         self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)

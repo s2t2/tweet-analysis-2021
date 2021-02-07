@@ -80,4 +80,12 @@ Lookup tweet timelines:
 USER_LIMIT=3 STATUS_LIMIT=5_000 python -m app.jobs.timeline_lookups
 ```
 
+## Testing
+
+Run tests:
+
+```sh
+pytest
+```
+
 ## [Deploying](DEPLOYING.md)

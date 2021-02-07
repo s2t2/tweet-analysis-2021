@@ -1,5 +1,7 @@
 
-
+#
+# DEV / PROD
+#
 
 python-dotenv
 
@@ -9,5 +11,10 @@ google-cloud-bigquery
 
 tweepy
 
+tqdm
 
-tqdm # progress bar https://github.com/tqdm/tqdm
+#
+# TEST / DOCS
+#
+
+pytest

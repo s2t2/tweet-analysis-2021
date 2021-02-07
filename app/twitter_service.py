@@ -29,33 +29,54 @@ class TwitterService:
     def get_user(self, screen_name):
         return self.api.get_user(screen_name)
 
-    def get_tweets(self, screen_name):
-        return self.api.user_timeline(screen_name,
-            tweet_mode="extended",
-            #count=150,
-            exclude_replies=True,
-            include_rts=False
-        )
+    #def get_statuses(self, screen_name=None, user_id=None, limit=2000):
+    #    """See:
+    #        https://docs.tweepy.org/en/latest/api.html#timeline-methods
+    #        https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
+    #    """
+    #    # TODO: more flexibly pass the API request params to this function
+    #    # ... set defaults, then override if they were passed in
+    #    # ... and add the cursor -1 option
+    #    request_params = {
+    #        "cursor": -1,
+    #        "exclude_replies": False,
+    #        "include_rts": True,
+    #        "tweet_mode": "extended",
+    #        "count": 200
+    #    }
+    #    # but we need either the user_id or the screen_name
+    #    # and we like being able to pass either in at a high level with no additional params to use sensible defaults
+    #    if user_id:
+    #        request_params["user_id"] = user_id
+    #    elif screen_name:
+    #        request_params["screen_name"] = screen_name
+#
+    #    cursor = Cursor(self.api.user_timeline, **request_params)
+    #    #return cursor.pages()
+    #    return cursor.items(limit)
+    #    #yield cursor.items(limit)
 
-    def get_statuses(self, screen_name=None, user_id=None, limit=2000):
+    def get_statuses(self, request_params, limit=2_000):
         """See:
             https://docs.tweepy.org/en/latest/api.html#timeline-methods
             https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
+
+        Params: request_params (dict) needs either user_id or screen_name
+
+        Example: get_statuses({"user_id": 10101, "count": 100})
         """
-        request_params = {"cursor": -1,
+        default_params = {
             "exclude_replies": False,
             "include_rts": True,
-            "tweet_mode": "extended"
-        } # TODO: more flexibly pass the API request params
-        if user_id:
-            request_params["user_id"] = user_id
-        elif screen_name:
-            request_params["screen_name"] = screen_name
+            "tweet_mode": "extended",
+            "count": 200 # number of tweets per request
+        }
+        request_params = {**default_params, **request_params} # use the defaults, and override with user-specified params
+        request_params["cursor"] = -1 # use a cursor approach!
 
         cursor = Cursor(self.api.user_timeline, **request_params)
         #return cursor.pages()
         return cursor.items(limit)
-        #yield cursor.items(limit)
 
 
 if __name__ == "__main__":
