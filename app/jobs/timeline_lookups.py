@@ -92,19 +92,20 @@ if __name__ == '__main__':
         sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
         exit() # don't try to do more work
 
-    #
-    # GET TIMELINE TWEETS FOR EACH USER
-    #
-
     lookups = []
     try:
 
+        #
+        # GET TIMELINE TWEETS FOR EACH USER
+        #
+
         for index, user_id in enumerate(user_ids):
             print("---------------------")
-            print("USER ID:", index, user_id)
+            print("USER ID:", index, generate_timestamp(), user_id)
+            lookup = {"user_id": user_id, "timeline_length": None, "error_code": None, "error_type": None, "error_message": None}
+            # todo: consider adding start_at and end_at columns on the lookup, to calculate avg times per user later
 
             timeline = []
-            lookup = {"user_id": user_id, "timeline_length": None, "error_code": None, "error_type": None, "error_message": None}
             try:
                 for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.status_limit):
                     timeline.append(job.parse_status(status))
@@ -122,18 +123,19 @@ if __name__ == '__main__':
                 if hasattr(err, "api_code"):
                     lookup["error_code"] = err.api_code
 
-
+            # to avoid sending too many API requests to BQ, instead of saving a single lookup here,
+            # ... we'll save them in batches later.
             print(lookup)
             lookups.append(lookup)
 
             if any(timeline):
+                print("SAVING", len(timeline), "TIMELINE TWEETS...")
                 job.save_timeline(timeline)
 
     finally:
-        # use this try, finally to ensure there aren't any situations where
+        # ensure there aren't any situations where
         # ... the timeline gets saved above, but the lookup record does not get saved below
         # ... (like in the case of an unexpected error or something)
-        # ... sending an API request to BQ to store a single lookup record feels bad, so...
         if any(lookups):
             print("SAVING", len(lookups), "LOOKUPS...")
             job.save_lookups(lookups)

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from pandas import DataFrame

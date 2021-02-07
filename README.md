@@ -73,3 +73,11 @@ Lookup user information:
 ```sh
 SEARCH_TERM="#WWG1WGA" LIMIT=10 python -m app.jobs.user_lookups
 ```
+
+Lookup tweet timelines:
+
+```sh
+USER_LIMIT=3 STATUS_LIMIT=5_000 python -m app.jobs.timeline_lookups
+```
+
+## [Deploying](DEPLOYING.md)
