@@ -76,6 +76,8 @@ DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookup
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups` (
     user_id INT64,
     timeline_length INT64,
+    -- start_at TIMESTAMP, -- todo add this column next time
+    -- end_at TIMESTAMP, -- todo add this column next time
     error_code INT64,
     error_type STRING,
     error_message STRING
@@ -139,60 +141,20 @@ group by 1,2
 order by 3 desc
 ```
 
-## Analysis
-
-### Disinfo Dataset Exploration
+Timeline Lookup Results:
 
 ```sql
--- who are the most active retweeters?
+-- see: https://developer.twitter.com/ja/docs/basics/response-codes
 SELECT
-    user_id
-    ,string_agg(distinct upper(user_screen_name)) as user_screen_names
-    ,count(distinct status_id) as rt_count
-FROM `tweet-research-shared.disinfo_2021.tweets_view`
-WHERE retweeted_status_id is not null
-GROUP BY 1
-ORDER BY 3 DESC
-LIMIT 50
-```
-
-```sql
--- who is being retweeting most?
-SELECT
-    retweeted_user_screen_name
-    ,count(distinct user_id) as user_count
-    ,count(distinct status_id) as status_count
-FROM `tweet-research-shared.disinfo_2021.tweets_view`
-WHERE retweeted_user_screen_name is not null
-GROUP BY 1
-ORDER BY 3 DESC
-LIMIT 50
-```
-
-Looks like we have a more generic dataset with mentions of generic terms, so let's restrict the dataset to users who have a higher likelihood of associating with disinfo.
-
-
-```sql
-SELECT
-   count(distinct user_id) as user_count
-   ,count(distinct status_id) as status_count
-FROM `tweet-research-shared.disinfo_2021.tweets_view`
-WHERE REGEXP_CONTAINS(upper(status_text), '#WWG1WGA')
-```
-
-Get user ids:
-
-```sql
-SELECT
-    user_id
-   ,string_agg(distinct upper(user_screen_name), ", ") as screen_names
-   ,any_value(user_verified) as user_verified
-   ,any_value(user_created_at) as user_created_at
-   ,count(distinct status_id) as status_count
-
-FROM `tweet-research-shared.disinfo_2021.tweets_view`
-WHERE REGEXP_CONTAINS(upper(status_text), '#WWG1WGA')
-GROUP BY 1
-ORDER BY status_count desc
-LIMIT 25
+    error_type
+    ,error_code
+    ,case when error_message like "%401%" THEN "Unauthorized"
+        when error_message like "%503%" THEN "Service Unavailable"
+        else error_message
+    end error_message
+   ,count(distinct user_id) as user_count
+   ,sum(timeline_length) as tweet_count
+FROM `tweet-collector-py.disinfo_2021_production.timeline_lookups`
+group by 1,2,3
+order by user_count desc
 ```
