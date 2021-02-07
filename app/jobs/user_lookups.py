@@ -1,15 +1,22 @@
 
 
 import os
-
+from dotenv import load_dotenv
 from tweepy.error import TweepError
 
-from app import APP_ENV
+from app import APP_ENV, seek_confirmation
 from app.bq_service import BigQueryService
 from app.twitter_service import TwitterService
 
+load_dotenv()
+
+DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.disinfo_2021_development")
 SEARCH_TERM = os.getenv("SEARCH_TERM", default="#WWG1WGA")
 LIMIT = os.getenv("LIMIT") # None is OK
+
+#class UserLookupJob:
+#    def __init__(self):
+#        pass
 
 if __name__ == '__main__':
 
@@ -18,30 +25,26 @@ if __name__ == '__main__':
 
     print("SEARCH_TERM:", SEARCH_TERM)
     print("LIMIT:", LIMIT)
-    print(bq_service.query_to_df("""
-            SELECT count(distinct user_id)
-            FROM `tweet-research-shared.disinfo_2021.user_lookups`
-        """))
+    print(bq_service.query_to_df(f"SELECT count(distinct user_id) FROM `{DATASET_ADDRESS}.user_lookups`"))
 
-    if APP_ENV=="development" and input("CONTINUE? (Y/N): ").upper() != "Y":
-        print("EXITING...")
-        exit()
+    seek_confirmation()
 
     sql = f"""
         SELECT DISTINCT u.user_id
         FROM (
-            SELECT DISTINCT user_id
-            FROM `tweet-research-shared.disinfo_2021.tweets_view`
+            SELECT DISTINCT cast(user_id as INT64) as user_id
+            FROM `{DATASET_ADDRESS}.tweets`
             WHERE REGEXP_CONTAINS(upper(status_text), '{SEARCH_TERM}')
         ) u
         LEFT JOIN (
             SELECT DISTINCT user_id
-            FROM `tweet-research-shared.disinfo_2021.user_lookups`
+            FROM `{DATASET_ADDRESS}.user_lookups`
         ) ul ON ul.user_id = u.user_id
         WHERE ul.user_id IS NULL -- exclude users with existing look-ups
     """
     if LIMIT:
         sql += f" LIMIT {int(LIMIT)} "
+    #print(sql)
 
     results_df = bq_service.query_to_df(sql)
     print(results_df.head())
@@ -77,12 +80,14 @@ if __name__ == '__main__':
         print(index, lookup)
         lookups.append(lookup)
 
-    table = bq_service.client.get_table("tweet-research-shared.disinfo_2021.user_lookups")
+    table = bq_service.client.get_table(f"{DATASET_ADDRESS}.user_lookups")
     bq_service.insert_records_in_batches(records=lookups, table=table)
 
-    print(bq_service.query_to_df("""
-        SELECT count(distinct user_id)
-        FROM `tweet-research-shared.disinfo_2021.user_lookups`
-    """))
+    print(bq_service.query_to_df(f"SELECT count(distinct user_id) FROM `{DATASET_ADDRESS}.user_lookups`"))
 
-    print("JOB COMPLETE. RESTARTING...")
+    print("JOB COMPLETE...")
+
+    if APP_ENV=="production":
+        print("SLEEPING...")
+        sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
+        exit() # don't try to do more work
