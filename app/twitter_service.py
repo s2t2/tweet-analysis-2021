@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from tweepy import OAuthHandler, API, Cursor, TweepError
 
-from helpers.number_decorators import fmt_n
+from app.number_decorators import fmt_n
 
 load_dotenv()
 

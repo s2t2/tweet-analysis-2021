@@ -68,13 +68,13 @@ python -m app.twitter_service
 
 ### Jobs / Worker Processes
 
-Lookup user information:
+Lookup user information, for users in our dataset who tweeted using a specified search term, optionally specifying a max number of users to fetch:
 
 ```sh
-SEARCH_TERM="#WWG1WGA" LIMIT=10 python -m app.jobs.user_lookups
+SEARCH_TERM="#MySearchTerm" LIMIT=10 python -m app.jobs.user_lookups
 ```
 
-Lookup tweet timelines:
+Lookup tweet timelines, specifying the max number of users to fetch, and the max number of tweets per user:
 
 ```sh
 USER_LIMIT=3 STATUS_LIMIT=5_000 python -m app.jobs.timeline_lookups
