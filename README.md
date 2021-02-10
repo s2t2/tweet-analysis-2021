@@ -99,3 +99,5 @@ pytest
 ```
 
 ## [Deploying](DEPLOYING.md)
+
+## [License](LICENSE.md)
