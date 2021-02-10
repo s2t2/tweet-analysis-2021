@@ -2,6 +2,10 @@
 
 # Migrations
 
+## Downstream Views
+
+Copying some of the production data to the shared environment, so we can query it from our Colab notebooks (where we are using a more limited set of credentials):
+
 ```sql
 create table `tweet-research-shared.disinfo_2021.topics_view` as (
     select *
@@ -36,7 +40,7 @@ create table `tweet-research-shared.disinfo_2021.tweets_view` as (
 )
 ```
 
-### User Lookups
+## User Lookups
 
 User lookups script:
 
@@ -67,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.user_look
 ```
 
 
-### Timeline Lookups
+## Timeline Lookups
 
 Timeline lookups script:
 
@@ -107,6 +111,7 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_
 
 
 
+<hr>
 
 
 # Queries
