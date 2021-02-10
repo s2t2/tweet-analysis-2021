@@ -2,9 +2,9 @@
 
 # Migrations
 
-## Downstream Views
+## Downstream Views (Analysis Environment)
 
-Copying some of the production data to the shared environment, so we can query it from our Colab notebooks (where we are using a more limited set of credentials):
+Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
 
 ```sql
 create table `tweet-research-shared.disinfo_2021.topics_view` as (
@@ -45,9 +45,6 @@ create table `tweet-research-shared.disinfo_2021.tweets_view` as (
 User lookups script:
 
 ```sql
---drop table `tweet-research-shared.disinfo_2021.user_lookups`;
---create table `tweet-research-shared.disinfo_2021.user_lookups` (
--- NEXT TIME DO THIS INSTEAD:
 drop table `tweet-collector-py.disinfo_2021_production.user_lookups`;
 create table `tweet-collector-py.disinfo_2021_production.user_lookups` (
     user_id INT64,
@@ -60,15 +57,15 @@ create table `tweet-collector-py.disinfo_2021_production.user_lookups` (
 )
 ```
 
-We should actually probably be collecting in the upstream project only, so let's at least backup there retrospectively:
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups` as (
-    SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
-    FROM `tweet-research-shared.disinfo_2021.user_lookups`
-)
-```
+> NOTE: We originally created this table in the shared analysis environment, but it is better to collect data into the upstream data environment. So here is a one-time query that was used retrospectively to backup the data into the upstream environment:
+>
+>```sql
+> -- DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups`;
+> -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.user_lookups` as (
+> --     SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
+> --     FROM `tweet-research-shared.disinfo_2021.user_lookups`
+> -- )
+>```
 
 
 ## Timeline Lookups
