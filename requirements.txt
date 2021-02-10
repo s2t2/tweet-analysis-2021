@@ -1,0 +1,20 @@
+
+#
+# DEV / PROD
+#
+
+python-dotenv
+
+pandas
+
+google-cloud-bigquery
+
+tweepy
+
+tqdm
+
+#
+# TEST / DOCS
+#
+
+pytest
