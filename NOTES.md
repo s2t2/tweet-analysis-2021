@@ -151,6 +151,7 @@ SELECT
     error_type
     ,error_code
     ,case when error_message like "%401%" THEN "Unauthorized"
+        when error_message like "%500%" THEN "Internal Server Error"
         when error_message like "%503%" THEN "Service Unavailable"
         else error_message
     end error_message
@@ -159,4 +160,14 @@ SELECT
 FROM `tweet-collector-py.disinfo_2021_production.timeline_lookups`
 group by 1,2,3
 order by user_count desc
+```
+
+```sql
+SELECT
+  extract(date from lookup_at) as lookup_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct status_id) as status_count
+FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+GROUP BY 1
+ORDER BY 1 DESC
 ```
