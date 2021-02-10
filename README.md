@@ -1,8 +1,8 @@
 # tweet-analysis-2021
 
-This is a fresh start follow-up to some [previous research code](https://github.com/s2t2/tweet-analyzer-py).
+This repo provides a fresh start follow-up to our [previous research code](https://github.com/s2t2/tweet-analyzer-py), in which we collected and analyzed tweets about the First Trump Impeachment. This repo supports the collection and analysis of tweets for subsequent events of interest: including the 2020 Election, 2021 Presidential Transition, the Second Trump Impeachment, as well as a generic longitudinal collection of disinformation-related tweets.
 
-The goal of this repo is to provide shared code for local dev, Heroku server, and Google Colab environments.
+If you are a researcher interested in accessing our data, or using this codebase to collect your own tweets of interest, feel free to reach out.
 
 ## Installation
 
@@ -67,6 +67,16 @@ python -m app.twitter_service
 ```
 
 ### Jobs / Worker Processes
+
+We start by collecting tweets in real-time using a Stream Listener approach. Then we follow-up with a historic collection of tweets for selected users, using the Search API.
+
+#### Twitter Stream Listener
+
+Use the ["tweet_collection_v2" code](https://github.com/s2t2/tweet-analyzer-py/tree/master/app/tweet_collection_v2) from the previous repo to collect tweets mentioning one of a number of specified terms.
+
+> NOTE: there is a plan to copy the stream listener code and integrate it into this repository in the near future.
+
+#### Twitter Search API
 
 Lookup user information, for users in our dataset who tweeted using a specified search term, optionally specifying a max number of users to fetch:
 
