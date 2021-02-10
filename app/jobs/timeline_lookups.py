@@ -69,13 +69,14 @@ class TimelineLookupsJob():
         return self.twitter_service.get_statuses(request_params={"user_id": user_id}, limit=self.status_limit)
 
     def save_timeline(self, timeline):
-        self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
+        return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
 
     def save_lookups(self, lookups):
-        self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+        return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
 
 
 if __name__ == '__main__':
+    from pprint import pprint
 
     job = TimelineLookupsJob()
 
@@ -101,36 +102,36 @@ if __name__ == '__main__':
 
         for index, user_id in enumerate(user_ids):
             print("---------------------")
-            print("USER ID:", index, generate_timestamp(), user_id)
-            lookup = {"user_id": user_id, "timeline_length": None, "error_code": None, "error_type": None, "error_message": None}
-            # todo: consider adding start_at and end_at columns on the lookup, to calculate avg times per user later
+            print("USER ID:", index, user_id)
 
+            lookup = {
+                "user_id": user_id,
+                "timeline_length": None,
+                "error_type": None,
+                "error_message": None,
+                "start_at": generate_timestamp(),
+                "end_at": None
+            }
             timeline = []
+
             try:
                 for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.status_limit):
                     timeline.append(job.parse_status(status))
+
                 lookup["timeline_length"] = len(timeline)
             except Exception as err:
-                #print("OOPS", err)
                 lookup["error_type"] = err.__class__.__name__
-
-                #if hasattr(err, "reason"):
-                #    lookup["error_message"] = err.reason
-                #else:
-                #    lookup["error_message"] = str(err)
                 lookup["error_message"] = str(err)
-
-                if hasattr(err, "api_code"):
-                    lookup["error_code"] = err.api_code
-
-            # to avoid sending too many API requests to BQ, instead of saving a single lookup here,
-            # ... we'll save them in batches later.
+            lookup["end_at"] = generate_timestamp()
             print(lookup)
             lookups.append(lookup)
 
             if any(timeline):
                 print("SAVING", len(timeline), "TIMELINE TWEETS...")
-                job.save_timeline(timeline)
+                errors = job.save_timeline(timeline)
+                if errors:
+                    pprint(errors)
+                    #breakpoint()
 
     finally:
         # ensure there aren't any situations where
@@ -138,6 +139,9 @@ if __name__ == '__main__':
         # ... (like in the case of an unexpected error or something)
         if any(lookups):
             print("SAVING", len(lookups), "LOOKUPS...")
-            job.save_lookups(lookups)
+            errors = job.save_lookups(lookups)
+            if errors:
+                pprint(errors)
+                #breakpoint()
 
     print("JOB COMPLETE!")

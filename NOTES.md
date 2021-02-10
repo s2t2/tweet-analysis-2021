@@ -76,11 +76,10 @@ DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookup
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_lookups` (
     user_id INT64,
     timeline_length INT64,
-    -- start_at TIMESTAMP, -- todo add this column next time
-    -- end_at TIMESTAMP, -- todo add this column next time
-    error_code INT64,
     error_type STRING,
-    error_message STRING
+    error_message STRING,
+    start_at TIMESTAMP,
+    end_at TIMESTAMP,
 );
 ```
 
@@ -101,8 +100,11 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_
     retweeted_status_id INT64,
     retweeted_user_id INT64,
     retweeted_user_screen_name STRING,
+
+    lookup_at TIMESTAMP
 )
 ```
+
 
 
 

@@ -24,16 +24,20 @@ def parse_timeline_status(status):
         "user_id": user.id_str,
         "status_id": status.id_str,
         "status_text": parse_string(parse_full_text(status)),
+        "created_at": generate_timestamp(status.created_at),
+
+        "geo": status.geo,
+        "is_quote": status.is_quote_status,
         "truncated": status.truncated,
+
+        "reply_status_id": status.in_reply_to_status_id_str,
+        "reply_user_id": status.in_reply_to_user_id_str,
         "retweeted_status_id": retweeted_status_id,
         "retweeted_user_id": retweeted_user_id,
         "retweeted_user_screen_name": retweeted_user_screen_name,
-        "reply_status_id": status.in_reply_to_status_id_str,
-        "reply_user_id": status.in_reply_to_user_id_str,
-        "is_quote": status.is_quote_status,
-        "geo": status.geo,
-        "created_at": generate_timestamp(status.created_at),
-    }
+
+        "lookup_at": generate_timestamp()
+    } # the order of these columns matters, when inserting records to BQ, based on the schema definition
     return row
 
 def parse_string(my_str):
