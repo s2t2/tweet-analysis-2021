@@ -1,43 +1,24 @@
 
 
-# Migrations
+# Database Queries and Migrations
 
-## Downstream Views (Analysis Environment)
+## Stream Listener
 
-Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
-
-```sql
-create table `tweet-research-shared.disinfo_2021.topics_view` as (
-    select *
-    from `tweet-collector-py.disinfo_2021_production.topics`
-)
-```
+Monitoring results:
 
 ```sql
-drop table `tweet-research-shared.disinfo_2021.tweets_view`;
-create table `tweet-research-shared.disinfo_2021.tweets_view` as (
-    select
-        cast(status_id as int64) as status_id
-        ,status_text
-        ,truncated
-        ,cast(retweeted_status_id as int64) as retweeted_status_id
-        ,retweeted_user_screen_name
-        ,cast(reply_status_id as int64) as reply_status_id
-        ,cast(reply_user_id as int64) as reply_user_id
-        ,is_quote
-        ,geo
-        ,created_at
-
-        ,cast(user_id as int64) as user_id
-        ,user_name
-        ,user_screen_name
-        ,user_description
-        ,user_location
-        ,user_verified
-        ,user_created_at
-    from `tweet-collector-py.disinfo_2021_production.tweets`
-    --LIMIT 10
-)
+SELECT
+    extract(date from created_at) as day
+    ,count(distinct user_id) as user_count
+    ,count(distinct status_id) as status_count
+    ,count(distinct case when retweeted_status_id is not null then status_id end) as rt_count
+FROM `tweet-collector-py.disinfo_2021_production.tweets`
+-- FROM `tweet-collector-py.impeachment_2021_production.tweets`
+-- FROM `tweet-collector-py.transition_2021_production.tweets`
+-- FROM `tweet-collector-py.election_2020_production.tweets`
+-- FROM `tweet-collector-py.impeachment_production.tweets`
+GROUP BY 1
+ORDER BY 1 DESC
 ```
 
 ## User Lookups
@@ -67,6 +48,22 @@ create table `tweet-collector-py.disinfo_2021_production.user_lookups` (
 > -- )
 >```
 
+Monitoring the results:
+
+```sql
+-- see: https://developer.twitter.com/ja/docs/basics/response-codes
+SELECT
+    error_code
+    ,case
+        when error_code = 50 then "User not found."
+        when error_code = 63 then "User has been suspended."
+    end  error_message
+   ,count(distinct user_id) as user_count
+   ,sum(status_count) as tweet_count
+FROM `tweet-research-shared.disinfo_2021.user_lookups`
+group by 1,2
+order by 3 desc
+```
 
 ## Timeline Lookups
 
@@ -106,46 +103,19 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.timeline_
 )
 ```
 
-
-
-<hr>
-
-
-# Queries
-
-Tweet Collection Progress:
+Monitoring the results:
 
 ```sql
 SELECT
-    extract(date from created_at) as day
-    ,count(distinct user_id) as user_count
-    ,count(distinct status_id) as status_count
-    ,count(distinct case when retweeted_status_id is not null then status_id end) as rt_count
-FROM `tweet-research-shared.disinfo_2021.tweets_view`
--- FROM `tweet-collector-py.disinfo_2021_production.tweets`
--- FROM `tweet-collector-py.impeachment_2021_production.tweets`
+  error_message
+  ,count(distinct user_id) as user_count
+  ,sum(timeline_length) as tweet_count
+  ,avg(timeline_length) as tweet_avg
+FROM `tweet-collector-py.disinfo_2021_production.timeline_lookups`
 GROUP BY 1
-ORDER BY 1 DESC
+--ORDER BY  start_at desc
+--LIMIT 10
 ```
-
-User Lookup Results:
-
-```sql
--- see: https://developer.twitter.com/ja/docs/basics/response-codes
-SELECT
-    error_code
-    ,case
-        when error_code = 50 then "User not found."
-        when error_code = 63 then "User has been suspended."
-    end  error_message
-   ,count(distinct user_id) as user_count
-   ,sum(status_count) as tweet_count
-FROM `tweet-research-shared.disinfo_2021.user_lookups`
-group by 1,2
-order by 3 desc
-```
-
-Timeline Lookup Results:
 
 ```sql
 -- see: https://developer.twitter.com/ja/docs/basics/response-codes
@@ -166,10 +136,69 @@ order by user_count desc
 
 ```sql
 SELECT
+  count(distinct user_id) as user_count
+  ,count(distinct status_id) as status_count
+FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+```
+
+```sql
+SELECT
   extract(date from lookup_at) as lookup_on
   ,count(distinct user_id) as user_count
   ,count(distinct status_id) as status_count
 FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
 GROUP BY 1
 ORDER BY 1 DESC
+```
+
+Distribution of timeline tweets over time (by day):
+
+```sql
+SELECT
+  extract(date from created_at) as created_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct status_id) as status_count
+FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
+<hr>
+
+## Downstream Views (Analysis Environment)
+
+Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
+
+```sql
+create table `tweet-research-shared.disinfo_2021.topics_view` as (
+    select *
+    from `tweet-collector-py.disinfo_2021_production.topics`
+)
+```
+
+```sql
+drop table `tweet-research-shared.disinfo_2021.tweets_view`;
+create table `tweet-research-shared.disinfo_2021.tweets_view` as (
+    select
+        cast(status_id as int64) as status_id
+        ,status_text
+        ,truncated
+        ,cast(retweeted_status_id as int64) as retweeted_status_id
+        ,retweeted_user_screen_name
+        ,cast(reply_status_id as int64) as reply_status_id
+        ,cast(reply_user_id as int64) as reply_user_id
+        ,is_quote
+        ,geo
+        ,created_at
+
+        ,cast(user_id as int64) as user_id
+        ,user_name
+        ,user_screen_name
+        ,user_description
+        ,user_location
+        ,user_verified
+        ,user_created_at
+    from `tweet-collector-py.disinfo_2021_production.tweets`
+    --LIMIT 10
+)
 ```
