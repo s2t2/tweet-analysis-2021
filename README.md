@@ -43,6 +43,7 @@ Create a new file in the root directory of this repo called ".env", and set your
 # example .env file
 
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/tweet-analysis-2021/google-credentials.json"
+#DATASET_ADDRESS="tweet-collector-py.disinfo_2021_development"
 
 TWITTER_API_KEY="_____________"
 TWITTER_API_KEY_SECRET="_____________"

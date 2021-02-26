@@ -7,13 +7,12 @@ from dotenv import load_dotenv
 from tqdm import tqdm as progress_bar
 
 from app import seek_confirmation
-from app.bq_service import BigQueryService, generate_timestamp
+from app.bq_service import BigQueryService, generate_timestamp, DATASET_ADDRESS
 from app.twitter_service import TwitterService
 from app.tweet_parser import parse_timeline_status
 
 load_dotenv()
 
-DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.disinfo_2021_development")
 USER_LIMIT = os.getenv("USER_LIMIT", default="250")
 STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="10_000")
 
