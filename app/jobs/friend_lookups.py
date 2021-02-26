@@ -51,28 +51,28 @@ class FriendLookupsJob():
         #print(sql)
         return [row["user_id"] for row in list(self.bq_service.execute_query(sql))]
 
-    #@property
-    #@lru_cache(maxsize=None)
-    #def lookups_table(self):
-    #    return self.bq_service.client.get_table(f"{self.dataset_address}.friend_lookups")
-#
-    #@property
-    #@lru_cache(maxsize=None)
-    #def friends_table(self):
-    #    return self.bq_service.client.get_table(f"{self.dataset_address}.friends")
-#
     #def fetch_friends(self, user_id):
     #    return self.twitter_service.get_friends(request_params={"user_id": user_id}, limit=self.friend_limit)
-#
-    #def save_friends(self, user_friends):
-    #    return self.bq_service.insert_records_in_batches(records=user_friends, table=self.friends_table)
-#
-    #def save_lookups(self, lookups):
-    #    return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+
+    def save_friends(self, user_friends):
+        return self.bq_service.insert_records_in_batches(records=user_friends, table=self.friends_table)
+
+    def save_lookups(self, lookups):
+        return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+
+    @property
+    @lru_cache(maxsize=None)
+    def lookups_table(self):
+        return self.bq_service.client.get_table(f"{self.dataset_address}.friend_lookups")
+
+    @property
+    @lru_cache(maxsize=None)
+    def friends_table(self):
+        return self.bq_service.client.get_table(f"{self.dataset_address}.friends")
 
 
 if __name__ == '__main__':
-    #from pprint import pprint
+    from pprint import pprint
 
     job = FriendLookupsJob()
 
@@ -89,18 +89,11 @@ if __name__ == '__main__':
         sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
         exit() # don't try to do more work
 
-
-
-
-
-
-    exit()
-
     lookups = []
     try:
 
         #
-        # GET TIMELINE TWEETS FOR EACH USER
+        # GET FRIENDS FOR EACH USER
         #
 
         for index, user_id in enumerate(user_ids):
@@ -109,19 +102,25 @@ if __name__ == '__main__':
 
             lookup = {
                 "user_id": user_id,
-                "timeline_length": None,
+                "friend_count": None,
                 "error_type": None,
                 "error_message": None,
                 "start_at": generate_timestamp(),
                 "end_at": None
             }
-            timeline = []
+            friends = []
 
             try:
-                for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.friend_limit):
-                    timeline.append(job.parse_status(status))
 
-                lookup["timeline_length"] = len(timeline)
+                for friend in job.twitter_service.get_friends(request_params={"user_id": user_id}, limit=job.friend_limit):
+                    friends.append({
+                        "user_id": user_id,
+                        "friend_id": friend.id, # friend.id_str
+                        "friend_name": friend.screen_name.upper(),
+                        "lookup_at": generate_timestamp(),
+                    })
+
+                lookup["friend_count"] = len(friends)
             except Exception as err:
                 lookup["error_type"] = err.__class__.__name__
                 lookup["error_message"] = str(err)
@@ -129,9 +128,9 @@ if __name__ == '__main__':
             print(lookup)
             lookups.append(lookup)
 
-            if any(timeline):
-                print("SAVING", len(timeline), "TIMELINE TWEETS...")
-                errors = job.save_timeline(timeline)
+            if any(friends):
+                print("SAVING", len(friends), "FRIENDS...")
+                errors = job.save_friends(friends)
                 if errors:
                     pprint(errors)
                     #breakpoint()

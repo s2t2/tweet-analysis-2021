@@ -54,6 +54,28 @@ class TwitterService:
         #return cursor.pages()
         return cursor.items(limit)
 
+    def get_friends(self, request_params={}, limit=2_000):
+        """See:
+            https://docs.tweepy.org/en/latest/api.html#API.friends
+            https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
+
+        Params:
+            request_params (dict) needs either "user_id" or "screen_name" attr
+
+            limit (int) the number of friends to fetch per user
+
+        Example: get_friends({"user_id": 10101, "count": 100}, limit=300)
+        """
+        default_params = {
+            "count": 200 # number of tweets per request
+        }
+        request_params = {**default_params, **request_params} # use the defaults, and override with user-specified params (including the required user_id or screen_name)
+        request_params["cursor"] = -1 # use a cursor approach!
+
+        cursor = Cursor(self.api.friends, **request_params)
+        #return cursor.pages()
+        return cursor.items(limit)
+
 
 if __name__ == "__main__":
     from pprint import pprint
