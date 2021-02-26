@@ -33,24 +33,24 @@ class FriendLookupsJob():
         print("FRIEND LIMIT:", self.friend_limit)
         print("---------------------------")
 
-    #def fetch_users(self):
-    #    sql = f"""
-    #        WITH user_lookups as (
-    #            SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
-    #            FROM `{self.dataset_address}.user_lookups`
-    #        )
-#
-    #        SELECT DISTINCT ul.user_id
-    #        FROM user_lookups ul
-    #        LEFT JOIN `{self.dataset_address}.friend_lookups` tl ON tl.user_id = ul.user_id
-    #        WHERE ul.error_code IS NULL
-    #            AND ul.status_count > 0
-    #            AND tl.user_id IS NULL
-    #        LIMIT {self.user_limit};
-    #    """
-    #    #print(sql)
-    #    return [row["user_id"] for row in list(self.bq_service.execute_query(sql))]
-#
+    def fetch_users(self):
+        sql = f"""
+            WITH user_lookups as (
+                SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
+                FROM `{self.dataset_address}.user_lookups`
+                WHERE error_code IS NULL and friend_count > 0
+                --LIMIT 10
+            )
+
+            SELECT DISTINCT ul.user_id
+            FROM user_lookups ul
+            LEFT JOIN `{self.dataset_address}.friend_lookups` fl ON fl.user_id = ul.user_id
+            WHERE fl.user_id IS NULL -- only users that have not yet been looked up
+            LIMIT {self.user_limit};
+        """
+        #print(sql)
+        return [row["user_id"] for row in list(self.bq_service.execute_query(sql))]
+
     #@property
     #@lru_cache(maxsize=None)
     #def lookups_table(self):
@@ -78,14 +78,6 @@ if __name__ == '__main__':
 
     seek_confirmation()
 
-
-
-
-    exit()
-
-
-
-
     #
     # GET USERS, EXCLUDING THOSE WHO ARE: SUSPENDED, NOT FOUND, PREVIOUSLY LOOKED-UP
     #
@@ -96,6 +88,13 @@ if __name__ == '__main__':
         print("SLEEPING...")
         sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
         exit() # don't try to do more work
+
+
+
+
+
+
+    exit()
 
     lookups = []
     try:

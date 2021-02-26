@@ -167,7 +167,35 @@ ORDER BY 1 DESC
 
 ## Friend Lookups
 
-friend_lookups table
+Friend lookups script:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.friend_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.friend_lookups` (
+    user_id INT64,
+    friends_count INT64,
+    error_type STRING,
+    error_message STRING,
+    start_at TIMESTAMP,
+    end_at TIMESTAMP,
+);
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.friends`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.friends` (
+    user_id INT64,
+    screen_name STRING,
+
+    friend_id INT64,
+    friend_name STRING,
+
+    lookup_at TIMESTAMP
+)
+```
+
+
+
 
 ## Downstream Views (Analysis Environment)
 
