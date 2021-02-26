@@ -165,6 +165,10 @@ ORDER BY 1 DESC
 
 <hr>
 
+## Friend Lookups
+
+friend_lookups table
+
 ## Downstream Views (Analysis Environment)
 
 Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):

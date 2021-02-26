@@ -23,7 +23,7 @@ def generate_timestamp(dt=None):
 class BigQueryService():
     def __init__(self, dataset_address=DATASET_ADDRESS):
         self.client = bigquery.Client()
-        self.dataset_address = dataset_address
+        self.dataset_address = dataset_address.replace(";", "")
 
     def execute_query(self, sql):
         job = self.client.query(sql)
