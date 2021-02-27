@@ -4,12 +4,10 @@ import os
 from time import sleep
 from functools import lru_cache
 from dotenv import load_dotenv
-from tqdm import tqdm as progress_bar
 
 from app import seek_confirmation
-from app.bq_service import BigQueryService, generate_timestamp, DATASET_ADDRESS
+from app.bq_service import BigQueryService, generate_timestamp
 from app.twitter_service import TwitterService
-from app.tweet_parser import parse_timeline_status
 
 load_dotenv()
 
@@ -51,8 +49,8 @@ class FriendLookupsJob():
         #print(sql)
         return [row["user_id"] for row in list(self.bq_service.execute_query(sql))]
 
-    #def fetch_friends(self, user_id):
-    #    return self.twitter_service.get_friends(request_params={"user_id": user_id}, limit=self.friend_limit)
+    def fetch_friends(self, user_id):
+        return self.twitter_service.get_friends(request_params={"user_id": user_id}, limit=self.friend_limit)
 
     def save_friends(self, user_friends):
         return self.bq_service.insert_records_in_batches(records=user_friends, table=self.friends_table)
@@ -112,7 +110,7 @@ if __name__ == '__main__':
 
             try:
 
-                for friend in job.twitter_service.get_friends(request_params={"user_id": user_id}, limit=job.friend_limit):
+                for friend in job.fetch_friends(user_id):
                     friends.append({
                         "user_id": user_id,
                         "friend_id": friend.id, # friend.id_str
@@ -137,7 +135,7 @@ if __name__ == '__main__':
 
     finally:
         # ensure there aren't any situations where
-        # ... the timeline gets saved above, but the lookup record does not get saved below
+        # ... the friends get saved above, but the lookup record does not get saved below
         # ... (like in the case of an unexpected error or something)
         if any(lookups):
             print("SAVING", len(lookups), "LOOKUPS...")
