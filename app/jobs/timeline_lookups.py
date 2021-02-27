@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm as progress_bar
 
 from app import seek_confirmation
-from app.bq_service import BigQueryService, generate_timestamp, DATASET_ADDRESS
+from app.bq_service import BigQueryService, generate_timestamp
 from app.twitter_service import TwitterService
 from app.tweet_parser import parse_timeline_status
 
@@ -18,8 +18,7 @@ STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="10_000")
 
 
 class TimelineLookupsJob():
-    def __init__(self, bq_service=None, twitter_service=None, dataset_address=DATASET_ADDRESS,
-                                        user_limit=USER_LIMIT, status_limit=STATUS_LIMIT):
+    def __init__(self, bq_service=None, twitter_service=None, user_limit=USER_LIMIT, status_limit=STATUS_LIMIT):
         self.bq_service = bq_service or BigQueryService()
         self.twitter_service = twitter_service or TwitterService()
 
