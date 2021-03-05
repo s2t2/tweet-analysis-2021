@@ -213,6 +213,16 @@ SELECT
 FROM `tweet-collector-py.disinfo_2021_production.friends`
 ```
 
+```sql
+SELECT
+  extract(date from lookup_at) as lookup_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", friend_id)) as friendship_count
+FROM `tweet-collector-py.disinfo_2021_production.friends`
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
 ## Follower Lookups
 
 Follower lookups script:
@@ -261,6 +271,15 @@ SELECT
 FROM `tweet-collector-py.disinfo_2021_production.followers`
 ```
 
+```sql
+SELECT
+  extract(date from lookup_at) as lookup_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", follower_id)) as followship_count
+FROM `tweet-collector-py.disinfo_2021_production.followers`
+GROUP BY 1
+ORDER BY 1 DESC
+```
 
 ## Downstream Views (Analysis Environment)
 

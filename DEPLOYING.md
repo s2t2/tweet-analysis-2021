@@ -6,6 +6,9 @@ Create a new app server (first time only):
 
 ```sh
 heroku create tweet-analysis-2021 # (use your own app name here)
+
+# might need to also:
+# git remote add REMOTE_NAME GIT_ADDRESS
 ```
 
 ## Server Config
