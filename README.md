@@ -97,6 +97,12 @@ Lookup friends, specifying the max number of users to fetch, and the max number 
 USER_LIMIT=100 FRIEND_LIMIT=10_000 python -m app.jobs.friend_lookups
 ```
 
+Lookup followers, specifying the max number of users to fetch, and the max number of followers per user:
+
+```sh
+USER_LIMIT=100 FOLLOWER_LIMIT=10_000 python -m app.jobs.follower_lookups
+```
+
 ## Testing
 
 Run tests:
