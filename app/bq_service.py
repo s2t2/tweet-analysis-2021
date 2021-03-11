@@ -7,6 +7,7 @@ from pandas import DataFrame
 load_dotenv()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud
+DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.disinfo_2021_development")
 
 def split_into_batches(my_list, batch_size=10_000):
     """Splits a list into evenly sized batches"""
@@ -20,8 +21,9 @@ def generate_timestamp(dt=None):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 class BigQueryService():
-    def __init__(self):
+    def __init__(self, dataset_address=DATASET_ADDRESS):
         self.client = bigquery.Client()
+        self.dataset_address = dataset_address.replace(";", "")
 
     def execute_query(self, sql):
         job = self.client.query(sql)
@@ -53,11 +55,13 @@ if __name__ == '__main__':
 
 
     bq_service = BigQueryService()
+    print(bq_service.dataset_address.upper())
 
-    print(bq_service.query_to_df("""
+    sql = f"""
         SELECT
             count(distinct user_id) as user_count
             ,count(distinct status_id) as status_count
-        FROM `tweet-research-shared.disinfo_2021.tweets_view`
-        LIMIT 10
-    """))
+        FROM `{bq_service.dataset_address}.tweets`
+    """
+    results_df = bq_service.query_to_df(sql)
+    print(results_df)

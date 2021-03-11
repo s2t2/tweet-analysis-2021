@@ -43,6 +43,7 @@ Create a new file in the root directory of this repo called ".env", and set your
 # example .env file
 
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/tweet-analysis-2021/google-credentials.json"
+#DATASET_ADDRESS="tweet-collector-py.disinfo_2021_development"
 
 TWITTER_API_KEY="_____________"
 TWITTER_API_KEY_SECRET="_____________"
@@ -88,6 +89,18 @@ Lookup tweet timelines, specifying the max number of users to fetch, and the max
 
 ```sh
 USER_LIMIT=3 STATUS_LIMIT=5_000 python -m app.jobs.timeline_lookups
+```
+
+Lookup friends, specifying the max number of users to fetch, and the max number of friends per user:
+
+```sh
+USER_LIMIT=100 FRIEND_LIMIT=10_000 python -m app.jobs.friend_lookups
+```
+
+Lookup followers, specifying the max number of users to fetch, and the max number of followers per user:
+
+```sh
+USER_LIMIT=100 FOLLOWER_LIMIT=10_000 python -m app.jobs.follower_lookups
 ```
 
 ## Testing

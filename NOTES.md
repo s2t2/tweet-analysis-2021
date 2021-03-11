@@ -165,6 +165,122 @@ ORDER BY 1 DESC
 
 <hr>
 
+## Friend Lookups
+
+Friend lookups script:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.friend_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.friend_lookups` (
+    user_id INT64,
+    friend_count INT64,
+    error_type STRING,
+    error_message STRING,
+    start_at TIMESTAMP,
+    end_at TIMESTAMP,
+);
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.friends`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.friends` (
+    user_id INT64,
+    --screen_name STRING,
+
+    friend_id INT64,
+    friend_name STRING,
+
+    lookup_at TIMESTAMP
+)
+```
+
+Monitoring the results:
+
+```sql
+SELECT
+  count(distinct user_id) as user_count
+  ,sum(friend_count) as friend_count
+  ,avg(friend_count) as friend_avg
+  ,max(friend_count) as friend_max
+FROM `tweet-collector-py.disinfo_2021_production.friend_lookups`
+
+```
+
+```sql
+SELECT
+  count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", friend_id)) as friendship_count
+FROM `tweet-collector-py.disinfo_2021_production.friends`
+```
+
+```sql
+SELECT
+  extract(date from lookup_at) as lookup_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", friend_id)) as friendship_count
+FROM `tweet-collector-py.disinfo_2021_production.friends`
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
+## Follower Lookups
+
+Follower lookups script:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.follower_lookups`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.follower_lookups` (
+    user_id INT64,
+    follower_count INT64,
+    error_type STRING,
+    error_message STRING,
+    start_at TIMESTAMP,
+    end_at TIMESTAMP,
+);
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.followers`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.followers` (
+    user_id INT64,
+    --screen_name STRING,
+
+    follower_id INT64,
+    follower_name STRING,
+
+    lookup_at TIMESTAMP
+)
+```
+
+Monitoring the results:
+
+
+```sql
+SELECT
+  count(distinct user_id) as user_count
+  ,sum(follower_count) as follower_count
+  ,avg(follower_count) as follower_avg
+  ,max(follower_count) as follower_max
+FROM `tweet-collector-py.disinfo_2021_production.follower_lookups`
+```
+
+```sql
+SELECT
+  count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", follower_id)) as followship_count
+FROM `tweet-collector-py.disinfo_2021_production.followers`
+```
+
+```sql
+SELECT
+  extract(date from lookup_at) as lookup_on
+  ,count(distinct user_id) as user_count
+  ,count(distinct concat(user_id, "--", follower_id)) as followship_count
+FROM `tweet-collector-py.disinfo_2021_production.followers`
+GROUP BY 1
+ORDER BY 1 DESC
+```
+
 ## Downstream Views (Analysis Environment)
 
 Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
