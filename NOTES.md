@@ -165,6 +165,7 @@ ORDER BY 1 DESC
 
 <hr>
 
+
 ## Friend Lookups
 
 Friend lookups script:
@@ -280,6 +281,26 @@ FROM `tweet-collector-py.disinfo_2021_production.followers`
 GROUP BY 1
 ORDER BY 1 DESC
 ```
+
+## Continuous Tweet Collection
+
+Users with successful timeline lookups:
+
+```sql
+SELECT
+  user_id
+  ,count(distinct status_id) as status_count
+  ,max(status_id) as latest_status
+  --,extract(date from min(created_at)) as earliest_on
+  --,extract(date from max(created_at)) as latest_on
+  ,extract(date from max(lookup_at)) as latest_lookup
+FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+GROUP BY 1
+ORDER BY 4
+```
+
+
+
 
 ## Downstream Views (Analysis Environment)
 
