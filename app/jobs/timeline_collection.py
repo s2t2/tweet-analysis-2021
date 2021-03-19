@@ -67,24 +67,27 @@ class TimelineCollectionJob():
         #print(sql)
         return list(self.bq_service.execute_query(sql))
 
+    def fetch_statuses(self, user_id, latest_status_id=None):
+        return self.twitter_service.get_statuses(
+            request_params={"user_id": user_id, "since_id": latest_status_id},
+            limit=self.status_limit
+        )
+
+    #def save_timeline(self, timeline):
+    #    return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
+    #
+    #def save_lookups(self, lookups):
+    #    return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+    #
     #@property
     #@lru_cache(maxsize=None)
     #def lookups_table(self):
     #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_lookups")
-#
+    #
     #@property
     #@lru_cache(maxsize=None)
     #def timelines_table(self):
     #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_tweets")
-#
-    #def fetch_statuses(self, user_id):
-    #    return self.twitter_service.get_statuses(request_params={"user_id": user_id}, limit=self.status_limit)
-#
-    #def save_timeline(self, timeline):
-    #    return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
-#
-    #def save_lookups(self, lookups):
-    #    return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
 
 
 if __name__ == '__main__':
@@ -98,16 +101,12 @@ if __name__ == '__main__':
     # GET USERS, EXCLUDING THOSE WHO ARE: SUSPENDED, NOT FOUND, PREVIOUSLY LOOKED-UP
     #
 
-    user_ids = job.fetch_users()
-    print("USERS:", len(user_ids))
-    if not any(user_ids):
+    users = job.fetch_users()
+    print("USERS:", len(users))
+    if not any(users):
         print("SLEEPING...")
         sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
         exit() # don't try to do more work
-
-
-    exit()
-
 
 
     lookups = []
@@ -117,9 +116,11 @@ if __name__ == '__main__':
         # GET TIMELINE TWEETS FOR EACH USER
         #
 
-        for index, user_id in enumerate(user_ids):
+        for index, row in enumerate(users):
+            user_id = row["user_id"]
+            latest_status_id = row["latest_status_id"]
             print("---------------------")
-            print("USER ID:", index, user_id)
+            print("USER ID:", index, user_id, "LATEST STATUS:", latest_status_id)
 
             lookup = {
                 "user_id": user_id,
@@ -132,7 +133,7 @@ if __name__ == '__main__':
             timeline = []
 
             try:
-                for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.status_limit):
+                for status in job.fetch_statuses(user_id=user_id, latest_status_id=latest_status_id):
                     timeline.append(job.parse_status(status))
 
                 lookup["timeline_length"] = len(timeline)
@@ -145,10 +146,10 @@ if __name__ == '__main__':
 
             if any(timeline):
                 print("SAVING", len(timeline), "TIMELINE TWEETS...")
-                errors = job.save_timeline(timeline)
-                if errors:
-                    pprint(errors)
-                    #breakpoint()
+                ##errors = job.save_timeline(timeline)
+                ##if errors:
+                ##    pprint(errors)
+                ##    #breakpoint()
 
     finally:
         # ensure there aren't any situations where
@@ -156,9 +157,9 @@ if __name__ == '__main__':
         # ... (like in the case of an unexpected error or something)
         if any(lookups):
             print("SAVING", len(lookups), "LOOKUPS...")
-            errors = job.save_lookups(lookups)
-            if errors:
-                pprint(errors)
-                #breakpoint()
+            #errors = job.save_lookups(lookups)
+            #if errors:
+            #    pprint(errors)
+            #    #breakpoint()
 
     print("JOB COMPLETE!")
