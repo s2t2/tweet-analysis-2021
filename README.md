@@ -103,6 +103,14 @@ Lookup followers, specifying the max number of users to fetch, and the max numbe
 USER_LIMIT=100 FOLLOWER_LIMIT=10_000 python -m app.jobs.follower_lookups
 ```
 
+
+Continuous collection of tweet timelines, specifying the max number of users to fetch, and the max number of tweets per user (it also uses their last tweet id if we have it):
+
+```sh
+USER_LIMIT=3 STATUS_LIMIT=5_000 python -m app.jobs.timeline_collection
+```
+
+
 ## Testing
 
 Run tests:

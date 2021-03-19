@@ -1,0 +1,164 @@
+
+
+import os
+from time import sleep
+from functools import lru_cache
+from dotenv import load_dotenv
+#from tqdm import tqdm as progress_bar
+
+from app import seek_confirmation
+from app.bq_service import BigQueryService, generate_timestamp
+from app.twitter_service import TwitterService
+from app.tweet_parser import parse_timeline_status
+
+load_dotenv()
+
+USER_LIMIT = os.getenv("USER_LIMIT", default="250")
+STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="10_000")
+
+
+class TimelineCollectionJob():
+    def __init__(self, bq_service=None, twitter_service=None, user_limit=USER_LIMIT, status_limit=STATUS_LIMIT):
+        self.bq_service = bq_service or BigQueryService()
+        self.twitter_service = twitter_service or TwitterService()
+
+        self.dataset_address = self.bq_service.dataset_address
+        self.user_limit = int(user_limit)
+        self.status_limit = int(status_limit)
+
+        self.parse_status = parse_timeline_status
+
+        print("---------------------------")
+        print("JOB: TIMELINE LOOKUPS")
+        print("DATASET:", self.dataset_address.upper())
+        print("USER LIMIT:", self.user_limit)
+        print("STATUS LIMIT:", self.status_limit)
+        print("---------------------------")
+
+    def fetch_users(self):
+        sql = f"""
+            SELECT
+                ul.user_id
+                ,prev.latest_status_id -- can be null
+                ,prev.latest_lookup_date -- can be null
+                --,coalesce(prev.latest_lookup_date, '1970-01-01')
+            FROM (
+                SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
+                FROM `{self.dataset_address}.user_lookups`
+                WHERE error_code IS NULL and status_count > 0
+                -- LIMIT 10
+            ) ul
+            LEFT JOIN (
+                SELECT
+                    user_id
+                    --,count(distinct status_id) as status_count
+                    ,max(status_id) as latest_status_id
+                    --,extract(date from min(created_at)) as earliest_on
+                    --,extract(date from max(created_at)) as latest_on
+                    ,extract(date from max(lookup_at)) as latest_lookup_date
+                FROM `{self.dataset_address}.timeline_tweets`
+                GROUP BY 1
+                --ORDER BY 3
+            ) prev ON ul.user_id = prev.user_id
+            --WHERE latest_lookup_at IS NULL
+            ORDER BY latest_lookup_date ASC
+            LIMIT {self.user_limit};
+        """
+        #print(sql)
+        return list(self.bq_service.execute_query(sql))
+
+    #@property
+    #@lru_cache(maxsize=None)
+    #def lookups_table(self):
+    #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_lookups")
+#
+    #@property
+    #@lru_cache(maxsize=None)
+    #def timelines_table(self):
+    #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_tweets")
+#
+    #def fetch_statuses(self, user_id):
+    #    return self.twitter_service.get_statuses(request_params={"user_id": user_id}, limit=self.status_limit)
+#
+    #def save_timeline(self, timeline):
+    #    return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
+#
+    #def save_lookups(self, lookups):
+    #    return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+
+
+if __name__ == '__main__':
+    from pprint import pprint
+
+    job = TimelineCollectionJob()
+
+    seek_confirmation()
+
+    #
+    # GET USERS, EXCLUDING THOSE WHO ARE: SUSPENDED, NOT FOUND, PREVIOUSLY LOOKED-UP
+    #
+
+    user_ids = job.fetch_users()
+    print("USERS:", len(user_ids))
+    if not any(user_ids):
+        print("SLEEPING...")
+        sleep(10 * 60 * 60) # let the server rest while we have time to shut it down
+        exit() # don't try to do more work
+
+
+    exit()
+
+
+
+    lookups = []
+    try:
+
+        #
+        # GET TIMELINE TWEETS FOR EACH USER
+        #
+
+        for index, user_id in enumerate(user_ids):
+            print("---------------------")
+            print("USER ID:", index, user_id)
+
+            lookup = {
+                "user_id": user_id,
+                "timeline_length": None,
+                "error_type": None,
+                "error_message": None,
+                "start_at": generate_timestamp(),
+                "end_at": None
+            }
+            timeline = []
+
+            try:
+                for status in progress_bar(job.fetch_statuses(user_id=user_id), total=job.status_limit):
+                    timeline.append(job.parse_status(status))
+
+                lookup["timeline_length"] = len(timeline)
+            except Exception as err:
+                lookup["error_type"] = err.__class__.__name__
+                lookup["error_message"] = str(err)
+            lookup["end_at"] = generate_timestamp()
+            print(lookup)
+            lookups.append(lookup)
+
+            if any(timeline):
+                print("SAVING", len(timeline), "TIMELINE TWEETS...")
+                errors = job.save_timeline(timeline)
+                if errors:
+                    pprint(errors)
+                    #breakpoint()
+
+    finally:
+        # ensure there aren't any situations where
+        # ... the timeline gets saved above, but the lookup record does not get saved below
+        # ... (like in the case of an unexpected error or something)
+        if any(lookups):
+            print("SAVING", len(lookups), "LOOKUPS...")
+            errors = job.save_lookups(lookups)
+            if errors:
+                pprint(errors)
+                #breakpoint()
+
+    print("JOB COMPLETE!")
