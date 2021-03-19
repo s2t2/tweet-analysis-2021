@@ -48,6 +48,12 @@ class TimelineCollectionJob():
                 WHERE error_code IS NULL and status_count > 0
                 -- LIMIT 10
             ) ul
+            JOIN (
+                SELECT DISTINCT user_id --, error_type, error_message
+                FROM `{self.dataset_address}.timeline_lookups`
+                WHERE error_type IS NULL
+                -- LIMIT 10
+            ) tl ON ul.user_id = tl.user_id
             LEFT JOIN (
                 SELECT
                     user_id
@@ -73,21 +79,21 @@ class TimelineCollectionJob():
             limit=self.status_limit
         )
 
-    #def save_timeline(self, timeline):
-    #    return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
-    #
-    #def save_lookups(self, lookups):
-    #    return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
-    #
-    #@property
-    #@lru_cache(maxsize=None)
-    #def lookups_table(self):
-    #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_lookups")
-    #
-    #@property
-    #@lru_cache(maxsize=None)
-    #def timelines_table(self):
-    #    return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_tweets")
+    def save_timeline(self, timeline):
+        return self.bq_service.insert_records_in_batches(records=timeline, table=self.timelines_table)
+
+    def save_lookups(self, lookups):
+        return self.bq_service.insert_records_in_batches(records=lookups, table=self.lookups_table)
+
+    @property
+    @lru_cache(maxsize=None)
+    def lookups_table(self):
+        return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_lookups")
+
+    @property
+    @lru_cache(maxsize=None)
+    def timelines_table(self):
+        return self.bq_service.client.get_table(f"{self.dataset_address}.timeline_tweets")
 
 
 if __name__ == '__main__':
@@ -146,10 +152,10 @@ if __name__ == '__main__':
 
             if any(timeline):
                 print("SAVING", len(timeline), "TIMELINE TWEETS...")
-                ##errors = job.save_timeline(timeline)
-                ##if errors:
-                ##    pprint(errors)
-                ##    #breakpoint()
+                errors = job.save_timeline(timeline)
+                if errors:
+                    pprint(errors)
+                    #breakpoint()
 
     finally:
         # ensure there aren't any situations where
@@ -157,9 +163,9 @@ if __name__ == '__main__':
         # ... (like in the case of an unexpected error or something)
         if any(lookups):
             print("SAVING", len(lookups), "LOOKUPS...")
-            #errors = job.save_lookups(lookups)
-            #if errors:
-            #    pprint(errors)
-            #    #breakpoint()
+            errors = job.save_lookups(lookups)
+            if errors:
+                pprint(errors)
+                #breakpoint()
 
     print("JOB COMPLETE!")
