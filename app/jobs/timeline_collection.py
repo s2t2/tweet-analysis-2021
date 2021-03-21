@@ -167,8 +167,8 @@ if __name__ == '__main__':
                 pprint(errors)
                 #breakpoint()
 
+    print("JOB COMPLETE!")
+
     if APP_ENV == "production":
         print("SLEEPING...")
         sleep(3 * 24 * 60 * 60) # let the server rest while we have time to shut it down
-
-    print("JOB COMPLETE!")
