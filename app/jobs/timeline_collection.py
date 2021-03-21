@@ -38,36 +38,35 @@ class TimelineCollectionJob():
     def fetch_users(self):
         sql = f"""
             SELECT
-                ul.user_id
-                ,prev.latest_status_id -- can be null
-                ,prev.latest_lookup_date -- can be null
-                --,coalesce(prev.latest_lookup_date, '1970-01-01')
+                all_users.user_id
+                ,all_users.status_count
+                ,all_users.first_status_at
+                ,prev_lookups.latest_status_id
+                ,prev_lookups.latest_lookup_at
             FROM (
-                SELECT DISTINCT user_id, error_code, follower_count, friend_count, listed_count, status_count, latest_status_id
-                FROM `{self.dataset_address}.user_lookups`
-                WHERE error_code IS NULL and status_count > 0
-                -- LIMIT 10
-            ) ul
-            JOIN (
-                SELECT DISTINCT user_id --, error_type, error_message
-                FROM `{self.dataset_address}.timeline_lookups`
-                WHERE error_type IS NULL
-                -- LIMIT 10
-            ) tl ON ul.user_id = tl.user_id
+                SELECT
+                    cast(user_id as int64) as user_id
+                    ,count(distinct status_id) as status_count
+                    ,min(created_at) first_status_at
+                FROM `{self.dataset_address}.tweets`
+                GROUP BY 1
+            ) all_users
             LEFT JOIN (
                 SELECT
                     user_id
-                    --,count(distinct status_id) as status_count
                     ,max(status_id) as latest_status_id
-                    --,extract(date from min(created_at)) as earliest_on
-                    --,extract(date from max(created_at)) as latest_on
-                    ,extract(date from max(lookup_at)) as latest_lookup_date
+                    ,max(lookup_at) latest_lookup_at
                 FROM `{self.dataset_address}.timeline_tweets`
                 GROUP BY 1
-                --ORDER BY 3
-            ) prev ON ul.user_id = prev.user_id
-            --WHERE latest_lookup_at IS NULL
-            ORDER BY latest_lookup_date ASC
+            ) prev_lookups ON all_users.user_id = prev_lookups.user_id
+            LEFT JOIN (
+                -- inactive users (suspended or not found)
+                SELECT DISTINCT cast(user_id as int64) as user_id
+                FROM `{self.dataset_address}.user_lookups`
+                WHERE error_code = 50 OR error_code = 63
+            ) inactive_users ON inactive_users.user_id = all_users.user_id
+            WHERE inactive_users.user_id IS NULL -- exclude inactive users -- 410,390 vs 440,211
+            ORDER BY latest_lookup_at
             LIMIT {self.user_limit};
         """
         #print(sql)
