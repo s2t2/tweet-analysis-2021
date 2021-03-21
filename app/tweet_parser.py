@@ -26,7 +26,7 @@ def parse_timeline_status(status):
         "status_text": parse_string(parse_full_text(status)),
         "created_at": generate_timestamp(status.created_at),
 
-        "geo": status.geo,
+        "geo": str(status.geo), # think this is a nested object
         "is_quote": status.is_quote_status,
         "truncated": status.truncated,
 
