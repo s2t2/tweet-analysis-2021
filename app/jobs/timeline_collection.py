@@ -6,7 +6,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 #from tqdm import tqdm as progress_bar
 
-from app import seek_confirmation
+from app import seek_confirmation, APP_ENV
 from app.bq_service import BigQueryService, generate_timestamp
 from app.twitter_service import TwitterService
 from app.tweet_parser import parse_timeline_status
@@ -166,5 +166,9 @@ if __name__ == '__main__':
             if errors:
                 pprint(errors)
                 #breakpoint()
+
+    if APP_ENV == "production":
+        print("SLEEPING...")
+        sleep(3 * 24 * 60 * 60) # let the server rest while we have time to shut it down
 
     print("JOB COMPLETE!")
