@@ -13,7 +13,7 @@ from app.tweet_parser import parse_timeline_status
 
 load_dotenv()
 
-USER_LIMIT = os.getenv("USER_LIMIT", default="250")
+USER_LIMIT = os.getenv("USER_LIMIT", default="100_000")
 STATUS_LIMIT = os.getenv("STATUS_LIMIT", default="10_000")
 
 
