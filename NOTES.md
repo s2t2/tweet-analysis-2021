@@ -302,6 +302,49 @@ ORDER BY 4
 
 
 
+## Complete Networks
+
+Friend and follower collection moves slower, so we only have a F/F network for a fraction of the total users. For how many users have we collected everything (i.e. tweets, friends, and followers)? We can use these "completed" users for our analysis:
+
+```sql
+--SELECT
+--   count(distinct t.user_id) as user_count
+--   ,count(distinct t.status_id) as status_id
+--   ,count(distinct friends.friend_id) as friend_count
+--    ,count(distinct followers.follower_id) as follower_count
+--FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets` t
+--LEFT JOIN `tweet-collector-py.disinfo_2021_production.friends` friends ON t.--user_id = friends.user_id
+--LEFT JOIN `tweet-collector-py.disinfo_2021_production.followers` followers ON t.--user_id = followers.user_id
+--WHERE t.user_id IS NOT NULL
+--    AND friends.user_id IS NOT NULL
+--    AND followers.user_id IS NOT NULL
+--
+
+
+SELECT
+   count(distinct disinfo_users.user_id) as user_count
+   ,sum(disinfo_users.status_count ) as status_count
+   ,sum(friends.friend_count) as friend_count
+   ,sum(followers.follower_count) as follower_count
+FROM (
+    SELECT user_id ,count(distinct status_id) as status_count
+    FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+    GROUP BY 1
+) disinfo_users
+JOIN (
+    SELECT user_id ,count(distinct friend_id) as friend_count
+    FROM `tweet-collector-py.disinfo_2021_production.friends`
+    GROUP BY 1
+) friends ON disinfo_users.user_id = friends.user_id
+JOIN (
+    SELECT user_id ,count(distinct follower_id) as follower_count
+    FROM `tweet-collector-py.disinfo_2021_production.followers`
+    GROUP BY 1
+) followers ON disinfo_users.user_id = followers.user_id
+
+
+```
+
 ## Downstream Views (Analysis Environment)
 
 Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
