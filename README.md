@@ -35,6 +35,8 @@ From the [Twitter Developer console](https://developer.twitter.com), create a ne
 
 From the [Google Cloud console](https://console.cloud.google.com/), enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "google-credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
 
+> NOTE: research assistants can download a copy of the shared credentials from the "credentials" subdirectory in the shared drive! 
+
 ### Environment Variables
 
 Create a new file in the root directory of this repo called ".env", and set your environment variables there, as necessary:
