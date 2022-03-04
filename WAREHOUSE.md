@@ -1,13 +1,29 @@
 
-# Data Warehouse Notes
+# Data Analysis Prep
 
 For reporting on what has been collected, and preparing the dataset for further analysis.
-
 
 ## Collection Totals
 
 
-We have collected 687 million unique tweets total.
+
+Original stream listeners collected 37.3M unique tweets:
+
+```sql
+SELECT
+  count(distinct status_id) as status_count
+FROM (
+    SELECT distinct cast(status_id as int64) as status_id FROM `tweet-collector-py.disinfo_2021_production.tweets`
+    UNION ALL
+    SELECT distinct cast(status_id as int64) as status_id FROM `tweet-collector-py.election_2020_production.tweets`
+    UNION ALL
+    SELECT distinct cast(status_id as int64) as status_id FROM `tweet-collector-py.transition_2021_production.tweets`
+    UNION ALL
+    SELECT distinct cast(status_id as int64) as status_id FROM `tweet-collector-py.impeachment_2021_production.tweets`
+) -- 37,352,881
+```
+
+Including timeline tweet re-collection, there are 698 million unique tweets total:
 
 ```sql
 SELECT
@@ -48,9 +64,9 @@ dataset | tweets | users
 `tweet-collector-py.impeachment_2021_production.tweets` | 13,606,846 | 1,578,367
 
 
-## Downstream Views (Analysis Environment)
+## Data Warehouse (Shared Environment)
 
-Copying some of the production data to the shared environment, to test our ability to query it from our Colab notebooks (where we are using a more limited set of credentials):
+Copying production data to the shared environment:
 
 ```sql
 create table `tweet-research-shared.disinfo_2021.topics_view` as (
@@ -60,8 +76,8 @@ create table `tweet-research-shared.disinfo_2021.topics_view` as (
 ```
 
 ```sql
-drop table `tweet-research-shared.disinfo_2021.tweets_view`;
-create table `tweet-research-shared.disinfo_2021.tweets_view` as (
+DROP TABLE IF EXISTS `tweet-research-shared.disinfo_2021.tweets_v2`;
+CREATE TABLE `tweet-research-shared.disinfo_2021.tweets_v2` as (
     select
         cast(status_id as int64) as status_id
         ,status_text
@@ -83,13 +99,5 @@ create table `tweet-research-shared.disinfo_2021.tweets_view` as (
         ,user_created_at
     from `tweet-collector-py.disinfo_2021_production.tweets`
     --LIMIT 10
-)
-```
-
-```sql
-CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.retweets_v2` as (
-    SELECT *
-        FROM `tweet-collector-py.impeachment_production.retweets_v2`
-        -- LIMIT 10
 )
 ```
