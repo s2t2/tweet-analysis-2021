@@ -66,38 +66,50 @@ dataset | tweets | users
 
 ## Data Warehouse (Shared Environment)
 
-Copying production data to the shared environment:
+Copying production data to the shared environment...
+
+
+
+### Topics
 
 ```sql
-create table `tweet-research-shared.disinfo_2021.topics_view` as (
-    select *
-    from `tweet-collector-py.disinfo_2021_production.topics`
-)
+CREATE TABLE `tweet-research-shared.election_2020.topics` as (
+    SELECT * FROM `tweet-collector-py.election_2020_production.topics`
+);
+
+CREATE TABLE `tweet-research-shared.disinfo_2021.topics` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.topics`
+);
+
+CREATE TABLE `tweet-research-shared.transition_2021.topics` as (
+    SELECT * FROM `tweet-collector-py.transition_2021_production.topics`
+);
+
+CREATE TABLE `tweet-research-shared.impeachment_2021.topics` as (
+    SELECT * FROM `tweet-collector-py.impeachment_2021_production.topics`
+);
 ```
 
-```sql
-DROP TABLE IF EXISTS `tweet-research-shared.disinfo_2021.tweets_v2`;
-CREATE TABLE `tweet-research-shared.disinfo_2021.tweets_v2` as (
-    select
-        cast(status_id as int64) as status_id
-        ,status_text
-        ,truncated
-        ,cast(retweeted_status_id as int64) as retweeted_status_id
-        ,retweeted_user_screen_name
-        ,cast(reply_status_id as int64) as reply_status_id
-        ,cast(reply_user_id as int64) as reply_user_id
-        ,is_quote
-        ,geo
-        ,created_at
 
-        ,cast(user_id as int64) as user_id
-        ,user_name
-        ,user_screen_name
-        ,user_description
-        ,user_location
-        ,user_verified
-        ,user_created_at
-    from `tweet-collector-py.disinfo_2021_production.tweets`
-    --LIMIT 10
-)
+
+
+
+### Tweets v2 Slim
+
+```sql
+CREATE TABLE `tweet-research-shared.election_2020.tweets_v2_slim` as (
+    SELECT * FROM `tweet-collector-py.election_2020_production.tweets_v2_slim`
+);
+
+CREATE TABLE `tweet-research-shared.disinfo_2021.tweets_v2_slim` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.tweets_v2_slim`
+);
+
+CREATE TABLE `tweet-research-shared.transition_2021.tweets_v2_slim` as (
+    SELECT * FROM `tweet-collector-py.transition_2021_production.tweets_v2_slim`
+);
+
+CREATE TABLE `tweet-research-shared.impeachment_2021.tweets_v2_slim` as (
+    SELECT * FROM `tweet-collector-py.impeachment_2021_production.tweets_v2_slim`
+);
 ```
