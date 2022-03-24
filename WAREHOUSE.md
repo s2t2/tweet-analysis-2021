@@ -113,3 +113,5 @@ CREATE TABLE `tweet-research-shared.impeachment_2021.tweets_v2_slim` as (
     SELECT * FROM `tweet-collector-py.impeachment_2021_production.tweets_v2_slim`
 );
 ```
+
+### User Details
