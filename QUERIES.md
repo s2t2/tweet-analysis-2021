@@ -246,10 +246,3 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.tweets_v
     --FROM  `tweet-collector-py.transition_2021_production.tweets_v2`
 );
 ```
-
-
-
-
-## Retweets
-
-## Replies

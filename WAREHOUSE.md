@@ -68,3 +68,48 @@ CREATE TABLE `tweet-research-shared.impeachment_2021.user_details` as (
     SELECT * FROM `tweet-collector-py.impeachment_2021_production.user_details`
 );
 ```
+
+### Timeline Tweets
+
+Table ID: tweet-collector-py.disinfo_2021_production.timeline_tweets
+
+Table size: 111.51 GB
+
+Number of rows: 665,378,196
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.timeline_tweets` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets`
+);
+```
+
+### Friends
+
+Table ID: tweet-collector-py.disinfo_2021_production.friends
+
+Table size: 697.29 MB
+
+Number of rows: 19,594,734
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.friends` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.friends`
+);
+```
+
+### Followers
+
+Table ID:
+ tweet-collector-py.disinfo_2021_production.followers
+
+Table size:
+ 611.5 MB
+
+Number of rows:
+ 17,148,293
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.followers` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.followers`
+);
+```
