@@ -1,9 +1,13 @@
 
-## Data Warehouse (Shared Environment)
+# Managing the Shared Data Environment
 
-Copying production data to the shared environment...
+First, make the [upstream data](UPSTREAM.md), as necessary, in source datasets.
 
+Then copy production data to the shared environment, where it can be accessible to other researchers...
 
+## Dataset-specific Tables
+
+These tables are found within a given dataset.
 
 ### Topics
 
@@ -112,4 +116,46 @@ Number of rows:
 CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.followers` as (
     SELECT * FROM `tweet-collector-py.disinfo_2021_production.followers`
 );
+```
+
+
+
+
+
+
+
+
+<hr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Cross-Dataset Tables
+
+These tables represent a mixture of data from all datasets. This helps for faster lookups and broadens the set of possible analyses.
+
+These tables should be re-migrated after new datasets are added, to include additional columns for the new dataset.
+
+### All Tweets
+
+One table of tweet ids to rule them all.
+
+```sql
+--CREATE TABLE `tweet-research-shared.warehouse.all_tweet_ids` as (
+--
+--);
+
+
+
 ```

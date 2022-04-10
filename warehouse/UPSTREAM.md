@@ -65,13 +65,20 @@ dataset | tweets | users
 
 
 
-## Tweets v2
+## Tweets v2 and v3
 
 The `tweets_v2` tables cast ids as integers. This will make for faster joins in the future on these columns.
 
 ```sql
 --DROP TABLE IF EXISTS `tweet-collector-py.election_2020_production.tweets_v2`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.tweets_v2` as (
+-- DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.tweets_v2`;
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_2021_production.tweets_v2`;
+-- DROP TABLE IF EXISTS `tweet-collector-py.transition_2021_production.tweets_v2`;
+
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.tweets_v2` as (
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.tweets_v2` as (
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_2021_production.tweets_v2` as (
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.transition_2021_production.tweets_v2` as (
     SELECT
         cast(status_id as int64) as status_id
         ,status_text
@@ -95,39 +102,36 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.tweets_v
         ,user_verified
         ,user_created_at
 
-    FROM  `tweet-collector-py.election_2020_production.tweets`
-    --LIMIT 10
-)
-```
-
-
-```sql
--- DROP TABLE IF EXISTS `tweet-collector-py.disinfo_2021_production.tweets_v2`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.disinfo_2021_production.tweets_v2` as (
-    SELECT
-        -- ...
-    FROM  `tweet-collector-py.disinfo_2021_production.tweets`
-    --LIMIT 10
-)
-```
-
-```sql
--- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_2021_production.tweets_v2`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_2021_production.tweets_v2` as (
-    SELECT
-            -- ..
-    FROM  `tweet-collector-py.impeachment_2021_production.tweets`
-)
-```
-
-```sql
--- DROP TABLE IF EXISTS `tweet-collector-py.transition_2021_production.tweets_v2`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.transition_2021_production.tweets_v2` as (
-    SELECT
-        -- ...
+    --FROM  `tweet-collector-py.election_2020_production.tweets`
+    --FROM  `tweet-collector-py.disinfo_2021_production.tweets`
+    --FROM  `tweet-collector-py.impeachment_2021_production.tweets`
     FROM  `tweet-collector-py.transition_2021_production.tweets`
 )
 ```
+
+
+OOPS there are some duplicate tweets:
+
+```sql
+SELECT status_id, count(*) as row_count
+--FROM `tweet-research-shared.impeachment_2020.tweets_v2` -- 17,063
+--FROM `tweet-research-shared.election_2020.tweets_v2_slim` -- 76,994
+-- FROM `tweet-research-shared.transition_2021.tweets_v2_slim` -- 1,220
+-- FROM `tweet-research-shared.impeachment_2021.tweets_v2_slim` -- 1,961
+--FROM `tweet-research-shared.disinfo_2021.tweets_v2_slim` -- 201
+FROM `tweet-research-shared.disinfo_2021.timeline_tweets` -- 387,990
+
+GROUP BY 1
+HAVING row_count > 1
+```
+
+Make sure there are no duplicate tweets:
+
+```sql
+
+```
+
+
 
 ## User Details
 
