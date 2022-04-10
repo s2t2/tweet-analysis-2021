@@ -107,12 +107,12 @@ class Collector:
     @property
     @lru_cache(maxsize=None)
     def recollected_statuses_table(self):
-        return self.bq_service.client.get_table(f"{self.bq_service.dataset_address}.recollected_statuses")
+        return self.bq_service.client.get_table(f"{self.analysis_dataset_address}.recollected_statuses")
 
     @property
     @lru_cache(maxsize=None)
     def recollected_urls_table(self):
-        return self.bq_service.client.get_table(f"{self.bq_service.dataset_address}.recollected_status_urls")
+        return self.bq_service.client.get_table(f"{self.analysis_dataset_address}.recollected_status_urls")
 
 
 
