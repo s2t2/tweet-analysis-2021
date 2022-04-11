@@ -184,17 +184,3 @@ Make these tables on development as well.
 
 
 <hr>
-
-
-# Monitoring
-
-Monitoring results:
-
-```sql
-SELECT
-   count(*) as row_count
-   ,count(distinct status_id) as status_count
-   ,count(distinct case when full_text is not null then status_id end) as success_count
-   ,count(distinct case when full_text is not null then status_id end) / count(distinct status_id) as success_pct
-FROM `tweet-collector-py.analysis_2021_development.recollected_statuses`
-```
