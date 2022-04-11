@@ -192,16 +192,9 @@ Monitoring results:
 
 ```sql
 SELECT
-   count(distinct status_id) as status_count
+   count(*) as row_count
+   ,count(distinct status_id) as status_count
    ,count(distinct case when full_text is not null then status_id end) as success_count
    ,count(distinct case when full_text is not null then status_id end) / count(distinct status_id) as success_pct
-FROM `tweet-collector-py.analysis_2021.recollected_statuses`
-```
-
-```sql
-SELECT
-   count(distinct status_id) as status_count
-   ,count(distinct case when full_text is not null then status_id end) as success_count
-   ,count(distinct case when full_text is not null then status_id end) / count(distinct status_id) as success_pct
-FROM `tweet-collector-py.analysis_2021.recollected_statuses`
+FROM `tweet-collector-py.analysis_2021_development.recollected_statuses`
 ```

@@ -45,9 +45,16 @@ class Collector:
         """
 
         sql = f"""
-            SELECT DISTINCT status_id
-            FROM `{self.analysis_dataset_address}.all_status_ids` -- 765,966,689
-            WHERE impeachment_2020=0 and disinfo_timeline=0 -- 33,508,881
+            WITH all_statuses as (
+                SELECT DISTINCT status_id
+                FROM `{self.analysis_dataset_address}.all_status_ids` -- 765,966,689
+                WHERE impeachment_2020=0 and disinfo_timeline=0 -- 33,508,881
+            )
+
+            SELECT DISTINCT all_statuses.status_id
+            FROM all_statuses
+            LEFT JOIN `{self.analysis_dataset_address}.recollected_statuses` completed ON completed.status_id = all_statuses.status_id
+            WHERE completed.status_id IS NULL
             LIMIT {self.limit}
         """
         return [row["status_id"] for row in list(self.bq_service.execute_query(sql))]
