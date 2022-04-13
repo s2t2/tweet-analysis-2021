@@ -2,8 +2,10 @@
 import os
 #from pprint import pprint
 from functools import lru_cache
+#import time
 
 from dotenv import load_dotenv
+#from tweepy.error import TweepError
 
 from app import seek_confirmation, server_sleep
 from app.bq_service import BigQueryService, split_into_batches, generate_timestamp
@@ -63,7 +65,12 @@ class Collector:
         recollected_statuses = []
         recollected_urls = []
         success_counter = 0
-        for status in self.lookup_statuses(status_ids):
+        statuses = self.lookup_statuses(status_ids)
+        if not statuses:
+            # eject! gracefully move on to processing the next batch
+            return None
+
+        for status in statuses:
             # when passing param map_=True to Twitter API, if statuses are not available, the status will be present, but will only have an id field
             status_id = status.id # all statuses will have an id
 
@@ -93,17 +100,27 @@ class Collector:
             See:
                 https://docs.tweepy.org/en/stable/api.html#API.statuses_lookup
                 https://developer.twitter.com/en/docs/twitter-api/v1/tweets/post-and-engage/api-reference/get-statuses-lookup
-        """
-        return self.twitter_api.statuses_lookup(
-            id_=status_ids,
-            include_entities=True, # this is where the full urls are
-            trim_user=True, # we already have this info
-            include_ext_alt_text=True, # If alt text has been added to any attached media entities, this parameter will return an ext_alt_text value in the top-level key for the media entity. If no value has been set, this will be returned as null.
-            include_card_uri=False,
-            map_=True, # "Tweets that do not exist or cannot be viewed by the current user will still have their key represented but with an explicitly null value paired with it"
 
-            tweet_mode="extended"
-        )
+            Todo: fix / handle... tweepy.error.TweepError: [{'message': 'Over capacity', 'code': 130}]
+
+        """
+        try:
+            return self.twitter_api.statuses_lookup(
+                id_=status_ids,
+                include_entities=True, # this is where the full urls are
+                trim_user=True, # we already have this info
+                include_ext_alt_text=True, # If alt text has been added to any attached media entities, this parameter will return an ext_alt_text value in the top-level key for the media entity. If no value has been set, this will be returned as null.
+                include_card_uri=False,
+                map_=True, # "Tweets that do not exist or cannot be viewed by the current user will still have their key represented but with an explicitly null value paired with it"
+
+                tweet_mode="extended"
+            )
+        except Exception as err:
+            print("OOPS FETCH ERROR...", err)
+            return None
+
+
+
 
     def save_statuses(self, recollected_statuses):
         self.bq_service.insert_records_in_batches(self.recollected_statuses_table, recollected_statuses)
