@@ -65,6 +65,11 @@ dataset | tweets | users
 
 
 
+
+<hr>
+
+# Migrations
+
 ## Tweets v2
 
 The `tweets_v2` tables cast ids as integers. This will make for faster joins in the future on these columns.
@@ -244,5 +249,37 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.tweets_v
     --FROM  `tweet-collector-py.disinfo_2021_production.tweets_v2`
     --FROM  `tweet-collector-py.impeachment_2021_production.tweets_v2`
     --FROM  `tweet-collector-py.transition_2021_production.tweets_v2`
+);
+```
+
+### Retweets v2
+
+Repeat this query for the following datasets (change in all three places):
+  + `tweet-collector-py.election_2020_production`
+  + `tweet-collector-py.disinfo_2021_production`
+  + `tweet-collector-py.impeachment_2021_production`
+  + `tweet-collector-py.transition_2021_production`
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-collector-py._____.retweets_v2` as (
+    -- screen names included for convenience, but prefer to use ids for analysis purposes
+    SELECT
+        t.user_id
+        ,u.screen_name as user_screen_name
+        -- u.created_at as user_created_at
+
+        ,t.retweeted_user_id
+        ,UPPER(t.retweeted_user_screen_name) as retweeted_user_screen_name
+
+        ,t.status_id
+        ,t.status_text
+        ,t.created_at
+
+    FROM `tweet-collector-py.______.tweets_v2_slim` t
+    LEFT JOIN `tweet-collector-py.______.user_details` u ON t.user_id = u.user_id
+    WHERE t.retweeted_status_id IS NOT NULL
+        AND t.user_id <> t.retweeted_user_id
+        -- and u.screen_name is null -- there are no nulls when doing a left join. so could do inner join instead
+    -- LIMIT 10
 );
 ```

@@ -69,6 +69,31 @@ CREATE TABLE `tweet-research-shared.impeachment_2021.user_details` as (
 );
 ```
 
+### Retweets v2
+
+```sql
+CREATE TABLE `tweet-research-shared.election_2020.retweets_v2` as (
+    SELECT * FROM `tweet-collector-py.election_2020_production.retweets_v2`
+);
+
+CREATE TABLE `tweet-research-shared.disinfo_2021.retweets_v2` as (
+    SELECT * FROM `tweet-collector-py.disinfo_2021_production.retweets_v2`
+);
+
+CREATE TABLE `tweet-research-shared.transition_2021.retweets_v2` as (
+    SELECT * FROM `tweet-collector-py.transition_2021_production.retweets_v2`
+);
+
+CREATE TABLE `tweet-research-shared.impeachment_2021.retweets_v2` as (
+    SELECT * FROM `tweet-collector-py.impeachment_2021_production.retweets_v2`
+);
+```
+
+
+
+
+
+
 ### Timeline Tweets
 
 Table ID: tweet-collector-py.disinfo_2021_production.timeline_tweets
