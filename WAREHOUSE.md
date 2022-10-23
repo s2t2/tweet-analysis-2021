@@ -25,7 +25,29 @@ CREATE TABLE `tweet-research-shared.impeachment_2021.topics` as (
 );
 ```
 
+Combined topics across these two similar datasets:
 
+```sql
+-- note this will have duplicate topics with different collection start dates if used in different datasets
+
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.election_2020_transition_2021_combined.topics` as (
+  SELECT *
+  FROM (
+    SELECT topic, created_at, 'election_2020' as dataset_name FROM `tweet-research-shared.election_2020.topics` 
+    UNION ALL
+    SELECT topic, created_at, 'transition_2021' as dataset_name FROM `tweet-research-shared.transition_2021.topics`
+  )
+  ORDER BY created_at, topic
+)
+
+-- de-duping topics
+-- SELECT topic, count(dataset_name) as dataset_count, array_agg(dataset_name) as dataset_names, array_agg(created_at) as created_ats
+-- FROM `tweet-research-shared.election_2020_transition_2021_combined.topics`
+-- GROUP BY 1 
+-- ORDER BY 1
+
+ ```
+ 
 
 
 
@@ -49,6 +71,36 @@ CREATE TABLE `tweet-research-shared.impeachment_2021.tweets_v2_slim` as (
 );
 ```
 
+Combined, tweets across these two similar datasets:
+
+```sql
+-- de-duplicate just in case there are overlaps, 
+-- although for these two datasets the timelines are different, and we don't have any dups
+
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.election_2020_transition_2021_combined.tweets_v2_slim` as (
+  SELECT status_id, user_id, status_text, truncated, is_quote, geo, created_at, 
+          retweeted_status_id, retweeted_user_id, retweeted_user_screen_name, reply_status_id, reply_user_id,
+          array_agg(distinct dataset_name) as dataset_names
+          ,string_agg(distinct dataset_name) as dataset_names_csv
+          ,count(distinct dataset_name) as dataset_count
+  FROM (
+    SELECT status_id, user_id, status_text, truncated, is_quote, geo, created_at, 
+          retweeted_status_id, retweeted_user_id, retweeted_user_screen_name, reply_status_id, reply_user_id,
+           'election_2020' as dataset_name 
+    FROM `tweet-research-shared.election_2020.tweets_v2_slim` -- LIMIT 10
+
+    UNION ALL
+
+    SELECT status_id, user_id, status_text, truncated, is_quote, geo, created_at, 
+          retweeted_status_id, retweeted_user_id, retweeted_user_screen_name, reply_status_id, reply_user_id,
+           'election_2020' as dataset_name 
+    FROM `tweet-research-shared.transition_2021.tweets_v2_slim` -- LIMIT 10
+  )
+  GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
+  ORDER BY created_at
+)
+ ```
+ 
 ### User Details
 
 ```sql
