@@ -214,6 +214,59 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.election_2020_production.user_det
 
 
 
+## User Profile Tags
+
+Repeat these queres for all datasets:
+
+  + `tweet-research-shared.election_2020`
+  + `tweet-research-shared.disinfo_2021` (TODO)
+  + `tweet-research-shared.impeachment_2021`
+  + `tweet-research-shared.transition_2021`
+
+
+```sql
+DROP TABLE IF EXISTS `tweet-research-shared.election_2020.profile_tags`;
+CREATE TABLE `tweet-research-shared.election_2020.profile_tags` as (
+  SELECT
+    user_id
+    ,REGEXP_EXTRACT_ALL(upper(p.descriptions_csv), r'#[A-Z0-9]+') as tags
+  FROM `tweet-research-shared.election_2020.user_details` p
+  WHERE REGEXP_CONTAINS(p.descriptions_csv, '#')
+  -- LIMIT 10
+)
+
+--WITH tag_counts as (
+--  SELECT user_id, array_length(tags) as tags_count
+--  FROM `tweet-research-shared.election_2020.profile_tags`
+--)
+--SELECT * FROM tag_counts WHERE tags_count > 1
+```
+
+```sql
+-- this is a distinct table of user profile tags
+CREATE TABLE `tweet-research-shared.election_2020.profile_tags_flat` as (
+    SELECT DISTINCT user_id, tag
+    FROM (
+        SELECT user_id, tag
+        FROM `tweet-research-shared.election_2020.profile_tags`
+        CROSS JOIN UNNEST(tags) AS tag
+        --LIMIT 1000
+    )
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Tweets v2 Slim
 
 Removing user-related columns will make for faster tweet-only queries:
