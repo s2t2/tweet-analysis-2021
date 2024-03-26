@@ -262,7 +262,37 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.q_user_timeline_t
 
 ```
 
+We want all the tweets actually:
 
+```sql
+
+-- SELECT count(distinct t.status_id) FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets` t -- 664,990,206
+
+-- SELECT count(distinct t.status_id) FROM `tweet-research-shared.disinfo_2021.q_user_timeline_tweets_original` t -- 857,084
+
+-- SELECT 
+--     count(distinct t.status_id) as q_status_count -- 11,982,573
+--     , count(distinct t.user_id) as q_user_count  -- 4718
+-- FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets` t
+-- JOIN `tweet-research-shared.disinfo_2021.q_user_details_v2020` u on t.user_id = u.user_id
+
+DROP TABLE IF EXISTS `tweet-research-shared.disinfo_2021.q_user_timeline_tweets`;
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.q_user_timeline_tweets` as (
+    SELECT DISTINCT
+      t.user_id, t.status_id, t.status_text, t.geo, t.created_at, t.lookup_at
+        , t.truncated
+        ,t.is_quote
+        ,t.reply_status_id , t.reply_user_id
+            , case when reply_status_id is not null then true else false end is_reply
+        ,t.retweeted_status_id, t.retweeted_user_id, t.retweeted_user_screen_name
+            ,case when retweeted_status_id is not null then true else false end is_rt
+    FROM `tweet-collector-py.disinfo_2021_production.timeline_tweets` t
+    JOIN `tweet-research-shared.disinfo_2021.q_user_details_v2020` u on t.user_id = u.user_id
+    -- WHERE t.is_quote <> true and t.reply_status_id is null and t.retweeted_status_id is null
+    ORDER BY user_id, created_at
+    -- LIMIT 10
+)
+```
 
 
 
